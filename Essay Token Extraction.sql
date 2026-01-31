@@ -1,22 +1,18 @@
 WITH base_projects AS (
     SELECT
         project.project_id AS project_id,
-        CASE
-            WHEN project_labels.category NOT IN ('Other','Technology','Supplies')
-            THEN project_labels.category
-        END AS category,
         project_essays.essay AS essay
     FROM dbt_target.fct_projects AS project
-    LEFT JOIN ${project_labels.SQL_TABLE_NAME} AS project_labels
-        ON project.project_id = project_labels.projectid
     LEFT JOIN dbt_target.fct_project_text AS project_essays
         ON project.project_id = project_essays.project_id
     LEFT JOIN dbt_target.fct_project_workflows AS project_workflow_facts
         ON project.project_id = project_workflow_facts.project_id
     WHERE
         (NOT project.is_essentials_list OR project.is_essentials_list IS NULL)
-        AND project_workflow_facts.last_content_or_resource_approved_at >= CONVERT_TIMEZONE('America/New_York', 'UTC', TIMESTAMP '2026-01-27')
+        AND project_workflow_facts.last_content_or_resource_approved_at >= CONVERT_TIMEZONE('America/New_York', 'UTC', TIMESTAMP '2026-01-30')
         AND project.project_id > 0
+        -- retains only x% of projects
+        AND project.project_id % 50 = 2
 ),
 numbers AS (
     SELECT ROW_NUMBER() OVER ()::INT AS n
@@ -25,12 +21,10 @@ numbers AS (
 )
 SELECT
     project_id,
-    category,
     LISTAGG(token, ',') WITHIN GROUP (ORDER BY term_count DESC) AS tokens
 FROM (
     SELECT
         bp.project_id,
-        bp.category,
         LOWER(
             SPLIT_PART(
                 REGEXP_REPLACE(bp.essay, '[^a-zA-Z]+', ' '),
@@ -48,16 +42,13 @@ FROM (
     WHERE bp.essay IS NOT NULL
     GROUP BY
         bp.project_id,
-        bp.category,
         token
 ) t
 WHERE
-    LENGTH(token) >= 3
+    -- only terms 3+ characters or 'ai'
+    (LENGTH(token) >= 3 OR token = 'ai')
 
-    -- 🔹 cheap top-K proxy
-    AND term_count >= 1
-
-    -- 🔹 static stopword removal (safe + fast)
+    -- static stopword removal
     AND token NOT IN 
         -- articles / conjunctions / prepositions
         ('the','and','for','with','are','was','were','been','being',
@@ -98,4 +89,4 @@ WHERE
         -- misc essay fillers
         'also','just','even','still','already','rather','quite',
         'each','every','both','either','neither')
-GROUP BY project_id, category;
+GROUP BY project_id;
