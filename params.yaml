@@ -1,0 +1,70 @@
+sql:
+  min_doc_count: 15          # Minimum number of distinct projects a token must appear in to be retained after SQL-side filtering.
+  max_doc_fraction: 0.50     # Maximum share of projects a token may appear in before being treated as too common and dropped.
+  token_cap: 80              # Maximum number of tokens kept per project after SQL extraction / trimming.
+
+preprocess:
+  min_project_tokens: 5      # Minimum number of tokens a project must have after preprocessing to remain in the dataset.
+  dedup_tokens_per_project: true  # Whether repeated occurrences of the same token inside a single project are collapsed to one unique token.
+
+ingest:
+  chunk_size: 500000         # Number of rows to process per chunk when ingesting large SQL extract CSVs.
+
+ngrams:
+  max_n: 3                   # Maximum n-gram length to generate upstream (for example: 3 = allow unigrams, bigrams, and trigrams).
+
+tfidf:
+  min_df: 7                  # Minimum document frequency passed to TfidfVectorizer; terms appearing in fewer than this many documents are ignored.
+  max_df: 0.60               # Maximum document-frequency share passed to TfidfVectorizer; terms in more than this fraction of documents are ignored.
+  ngram_range: [1, 2]        # Inclusive n-gram range for TF-IDF features: [1, 2] means unigrams and bigrams.
+
+nmf:
+  n_components: 12           # Number of NMF topics/components to fit per analysis group.
+  top_words: 12              # Number of highest-weight terms to surface when labeling or reviewing each NMF topic.
+  random_seed: 42            # Random seed for reproducible NMF initialization and outputs.
+  max_iter: 400              # Maximum number of iterations allowed for NMF optimization before stopping.
+
+enrichment:
+  rare_doc_freq_ceiling: 1000        # Maximum document frequency for a token/phrase to count as "rare" during enrichment candidate discovery.
+  agg_distance_threshold: 0.35       # Distance threshold used when clustering semantically similar enrichment candidates; lower values create tighter clusters.
+  min_cluster_size: 3                # Minimum number of candidate terms/items required for an enrichment cluster to be kept.
+  min_inject_projects: 25            # Minimum number of projects that must support an enrichment signal before it is injected back into the corpus.
+  max_doc_freq_for_injection: 25000  # Maximum document frequency allowed for a candidate enrichment term before it is considered too common to inject.
+  classify_batch_size: 150           # Number of items sent per batch during LLM or embedding-based enrichment classification.
+  embedding_model: "all-MiniLM-L6-v2"     # Sentence-transformer model used to create embeddings for enrichment similarity / clustering work.
+  cache_schema_version: "v1"              # Manual cache version string; change this to invalidate prior cached enrichment artifacts.
+  coverage_deviation_warn_threshold: 10   # Warning threshold, in percentage points, when realized enrichment coverage deviates from the target/expected coverage.
+  force_reclassify: true                  # Whether to re-run enrichment classification even when cached framing / classification outputs already exist.
+
+analysis:
+  group_by: project_category       # Single column used to split the corpus into analysis groups; downstream code expects a scalar field name, not a list.
+  min_group_projects: 50           # Minimum number of projects required for a group to be analyzed.
+  min_coverage: 6                  # Minimum coverage threshold a topic/signal must meet within a group to be retained in analysis outputs.
+  topic_assignment_threshold: 0.30 # Minimum topic_share required to link a project to a topic in the project-topic bridge.
+  nmf_min_shared: 3                # Minimum shared evidence required when evaluating overlap/connection among NMF-derived topic terms or signals.
+  cat_tfidf_top_n: 20              # Number of top TF-IDF terms to surface for each analysis group/category summary.
+  review_group: null               # Optional single group value to restrict the run to; null means run all eligible groups.
+  exclude_groups: []               # List of specific group values to skip entirely during analysis.
+  synthesis_max_workers: 8         # Maximum number of parallel worker threads used for per-group synthesis tasks.
+  bins: []                         # Optional analyst-defined date bins; each item should be a dict like {name, start, end} for add_bin-style bucketing.
+  group_descriptions:
+    project_category: "product categories teachers use to request classroom supplies"    # Prompt-friendly description used when group_by=project_category.
+    grade_band: "grade bands (PreK-2, 3-5, 6-8, 9-12) across DonorsChoose projects"      # Prompt-friendly description used when group_by=grade_band.
+    posted_year: "annual time periods showing how teacher language evolved"              # Prompt-friendly description used when group_by=posted_year.
+    posted_year_quarter: "quarterly time periods showing how teacher language evolved"   # Prompt-friendly description used when group_by=posted_year_quarter.
+    metro_type_at_time_of_posting: "school metro types across DonorsChoose projects"     # Prompt-friendly description used when group_by=metro_type_at_time_of_posting.
+    school_is_low_income: "low-income vs non-low-income schools"                         # Prompt-friendly description used when group_by=school_is_low_income.
+
+llm:
+  top_terms_in_prompt: 10          # Number of top terms to include in each LLM prompt for labeling / synthesis context.
+  n_representative_snippets: 5     # Number of representative text snippets/examples to include in LLM prompts.
+
+models:
+  labeling:   gpt-4o-mini          # Model used for short topic/cluster labeling tasks.
+  synthesis:  gpt-4o               # Model used for longer-form synthesis and narrative generation.
+  gate:       gpt-4o-mini          # Model used for gating / validation decisions in the pipeline.
+  classify:   gpt-4o-mini          # Model used for classification steps.
+  discovery:  gpt-4o               # Model used for broader discovery / ideation steps.
+
+output:
+  csv_max_ids_per_insight: 500     # Maximum number of project IDs to attach/store for a single insight row in CSV outputs.

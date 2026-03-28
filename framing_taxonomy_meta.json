@@ -1,0 +1,14 @@
+{
+  "tier_notes": {
+    "nmf": "15 categories. Designed to surface as recognizable signals inside NMF topic clusters. Semantically concentrated \u2014 presence should shift what a topic means.",
+    "analysis": "48 categories. Designed for post-hoc cross-tabulation and framing analysis. May be distributed across many topics; not expected to dominate any single cluster."
+  },
+  "injection_note": "Both tiers are injected identically in 01.5. The tier distinction affects interpretation only \u2014 nmf-tier tokens in NMF top_terms are first-class topic signals; analysis-tier tokens are framing overlays.",
+  "field_notes": {
+    "rationale": "Human-maintenance field. Not passed to any LLM prompt. Explains design rationale.",
+    "target_coverage_pct": "Documentation target. Actual coverage is checked in 01.5 Cell 12 against enrichment.coverage_deviation_warn_threshold.",
+    "counter_examples": "Passed to the classifier prompt. Most important disambiguation signal per category \u2014 keep maintained.",
+    "contrast_with": "Documentation field. Not passed to LLM prompts currently."
+  },
+  "schema_note": "framing_taxonomy.json is a plain JSON array of category objects. Do not add top-level keys \u2014 this would break all load sites that iterate the array directly."
+}

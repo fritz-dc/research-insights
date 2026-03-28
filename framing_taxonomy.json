@@ -1,0 +1,1892 @@
+[
+  {
+    "category": "episodic_disruption_recovery",
+    "tier": "nmf",
+    "description": "Terms that frame need as event-shaped: disruption, crisis, interruption, return, rebuilding, or recovery after a named or nameable shock. DO NOT tag terms that only describe steady under-resourcing or household hardship without an event shape; words like underfunded, pantry, or shortage are NOT applicable unless they point to disruption or recovery.",
+    "examples": [
+      "disruption",
+      "recovery",
+      "rebuilding",
+      "learning loss",
+      "reopen",
+      "aftermath",
+      "setback",
+      "interruption",
+      "reentry",
+      "recovery plan"
+    ],
+    "counter_examples": [
+      "underfunded",
+      "pantry",
+      "laundry",
+      "restock",
+      "replacement",
+      "equity",
+      "overcrowded",
+      "snacks"
+    ],
+    "target_coverage_pct": "20-35%",
+    "contrast_with": "chronic_scarcity",
+    "rationale": "COVID-recovery device requests and post-storm classroom rebuild projects should score high; steady pantry restock and robotics-lab launch projects should score low. This signal should spike in 2020-2021 and in quarters following named disasters or reopening periods."
+  },
+  {
+    "category": "chronic_scarcity",
+    "tier": "nmf",
+    "description": "Terms that frame need as persistent, background under-resourcing rather than a discrete disruption or recovery cycle. DO NOT tag event-shaped crisis or rebuilding language; disruption, aftermath, and reopen are NOT applicable unless the essay is mainly about steady insufficiency rather than recovery from a named shock.",
+    "examples": [
+      "underfunded",
+      "shortage",
+      "scarcity",
+      "insufficient",
+      "limited resources",
+      "bare bones",
+      "worn out",
+      "outdated",
+      "ongoing need",
+      "constant shortage"
+    ],
+    "counter_examples": [
+      "recovery",
+      "rebuilding",
+      "aftermath",
+      "reopen",
+      "learning loss",
+      "storm damage",
+      "return to school",
+      "setback"
+    ],
+    "target_coverage_pct": "18-32%",
+    "contrast_with": "episodic_disruption_recovery",
+    "rationale": "Steady supply-shortage essays, aging-technology replacement requests, and chronically under-resourced classroom basics should score high; post-disaster rebuilds and COVID-reentry projects should score low. The signal should remain relatively stable across years, with modest strengthening in inflation-pressure periods when teachers name persistent insufficiency rather than sudden disruption."
+  },
+  {
+    "category": "barrier_removal",
+    "tier": "nmf",
+    "description": "Terms that describe removing an obstacle blocking ordinary participation, access, focus, comfort, or routine classroom functioning. DO NOT tag terms whose main point is opening a new opportunity, showcase, or enrichment path; robotics, studio, or field trip language is NOT applicable unless the essay centers on a blocked baseline condition.",
+    "examples": [
+      "barrier",
+      "obstacle",
+      "blocked access",
+      "participation barrier",
+      "limited access",
+      "access gap",
+      "stay organized",
+      "organizer",
+      "friction",
+      "accessibility"
+    ],
+    "counter_examples": [
+      "robotics",
+      "greenhouse",
+      "podcast",
+      "showcase",
+      "studio",
+      "competition",
+      "makerspace",
+      "exploration"
+    ],
+    "target_coverage_pct": "25-40%",
+    "contrast_with": "opportunity_expansion",
+    "rationale": "Noise-reduction headphone requests, pantry shelves, and seating-regulation projects should score high; school garden launches and media-production studio projects should score low. The signal should rise in pandemic recovery and inflation-pressure periods, then remain broadly stable across routine access requests."
+  },
+  {
+    "category": "catch_up_remediation",
+    "tier": "nmf",
+    "description": "Terms that frame the request as helping students recover lost ground, close gaps, rebuild prerequisite skills, or return to expected proficiency. DO NOT tag forward-looking enrichment or broad exploration language; curiosity, robotics, or showcase terms are NOT applicable unless the essay explicitly stresses catching up.",
+    "examples": [
+      "intervention",
+      "remediation",
+      "gap closure",
+      "skill gaps",
+      "reading recovery",
+      "phonics",
+      "decodable",
+      "tutoring",
+      "fluency",
+      "small group"
+    ],
+    "counter_examples": [
+      "robotics",
+      "greenhouse",
+      "podcast",
+      "career",
+      "makerspace",
+      "internship",
+      "innovation",
+      "publishing"
+    ],
+    "target_coverage_pct": "18-30%",
+    "contrast_with": "opportunity_expansion",
+    "rationale": "Reading-intervention kits and after-school tutoring projects should score high; coding-club expansion and greenhouse build-outs should score low. This framing should be strongest in 2020-2022 recovery periods and ease somewhat as essays shift back toward enrichment."
+  },
+  {
+    "category": "opportunity_expansion",
+    "tier": "nmf",
+    "description": "Terms that frame the request as opening a new possibility, pathway, experience, or aspirational horizon rather than fixing a blocked baseline condition. DO NOT tag terms centered on access repair, regulation, replacement, or pantry-style relief; headphones, breakfast, and replacement language are NOT applicable unless the essay is clearly about expansion.",
+    "examples": [
+      "explore",
+      "enrichment",
+      "makerspace",
+      "robotics",
+      "greenhouse",
+      "publishing",
+      "studio",
+      "field trip",
+      "innovation",
+      "discovery"
+    ],
+    "counter_examples": [
+      "headphones",
+      "breakfast",
+      "laundry",
+      "replacement",
+      "restock",
+      "intervention",
+      "hygiene",
+      "calming"
+    ],
+    "target_coverage_pct": "20-35%",
+    "contrast_with": "barrier_removal",
+    "rationale": "Robotics kits, media labs, and greenhouse projects should score high; hygiene closets and replacement Chromebook requests should score low. This signal should strengthen in non-crisis periods and in STEM or arts push cycles after the sharp pandemic recovery years."
+  },
+  {
+    "category": "capacity_first_dignity",
+    "tier": "nmf",
+    "description": "Terms that portray students through capability, pride, dignity, voice, or strength even when need is present. DO NOT tag vocabulary that foregrounds embarrassment, exposure, or fragility as the main student portrait; crisis, trauma, or helplessness terms are NOT applicable unless they are paired with an overt strength-first framing.",
+    "examples": [
+      "pride",
+      "resilient",
+      "leadership",
+      "self advocacy",
+      "capable",
+      "strengths",
+      "problem solving",
+      "confidence",
+      "creative",
+      "potential"
+    ],
+    "counter_examples": [
+      "panic",
+      "crisis",
+      "fragile",
+      "embarrassed",
+      "hygiene",
+      "hungry",
+      "trauma",
+      "survival"
+    ],
+    "target_coverage_pct": "18-30%",
+    "contrast_with": "none",
+    "rationale": "Student-publication projects and arts showcases should score high; emergency pantry and hygiene-closet projects should score low. The signal should be fairly stable, with modest rises in arts, leadership, and student-voice waves."
+  },
+  {
+    "category": "regulation_safety_need",
+    "tier": "nmf",
+    "description": "Terms that frame the request around calm, regulation, sensory comfort, safety, de-escalation, or emotional steadiness as a prerequisite for participation. DO NOT tag broad creativity or autonomy language that lacks a regulation or protection component; makerspace, choice, and exploration terms are NOT applicable on their own.",
+    "examples": [
+      "sensory",
+      "calming",
+      "safe",
+      "headphones",
+      "fidget",
+      "decompress",
+      "reduce anxiety",
+      "self regulate",
+      "movement break",
+      "flexible seating"
+    ],
+    "counter_examples": [
+      "makerspace",
+      "robotics",
+      "publishing",
+      "choice",
+      "inquiry",
+      "leadership",
+      "studio",
+      "competition"
+    ],
+    "target_coverage_pct": "18-32%",
+    "contrast_with": "student_choice_autonomy",
+    "rationale": "Calm-corner materials, sensory tools, and flexible-seating requests should score high; debate-team travel and student-podcast projects should score low. This framing should grow during SEL-heavy periods and around post-pandemic wellness emphasis."
+  },
+  {
+    "category": "readiness_to_learn",
+    "tier": "nmf",
+    "description": "Terms that frame the request as establishing the physical, cognitive, or emotional conditions required before ordinary instruction can work. DO NOT tag compliance, mandate, or standards language that justifies the request bureaucratically; standards, required, and assessment terms are NOT applicable unless the essay is centered on readiness conditions themselves.",
+    "examples": [
+      "ready to learn",
+      "on task",
+      "concentrate",
+      "alert",
+      "nourished",
+      "regulated",
+      "ready for instruction",
+      "attentive",
+      "focused learning",
+      "calm body"
+    ],
+    "counter_examples": [
+      "standards",
+      "required",
+      "compliance",
+      "mandate",
+      "assessment",
+      "benchmark",
+      "iep",
+      "curriculum"
+    ],
+    "target_coverage_pct": "20-35%",
+    "contrast_with": "inquiry_exploration",
+    "rationale": "Breakfast carts, sensory seating, and winter-coat requests should score high; standards-aligned assessment prep or mandated service requests should score low. The signal should rise in pandemic recovery and inflation periods when essays stress basic readiness conditions."
+  },
+  {
+    "category": "loss_avoidance",
+    "tier": "nmf",
+    "description": "Terms that persuade by emphasizing what will be prevented, avoided, or not lost if the project is funded: missed instruction, exclusion, hunger, anxiety, or falling behind. DO NOT tag upbeat possibility or celebration language whose main force is gain or excitement; showcase, joy, and discovery terms are NOT applicable unless the essay is primarily preventing harm.",
+    "examples": [
+      "prevent",
+      "avoid",
+      "missed",
+      "absence",
+      "setback",
+      "decline",
+      "protect",
+      "slippage",
+      "attendance",
+      "shortfall"
+    ],
+    "counter_examples": [
+      "celebration",
+      "joy",
+      "showcase",
+      "discovery",
+      "wonder",
+      "studio",
+      "publish",
+      "spark"
+    ],
+    "target_coverage_pct": "18-32%",
+    "contrast_with": "joy_possibility_appeal",
+    "rationale": "Attendance, intervention, and care-closet projects should score high; theater-set builds and student-publication launches should score low. This framing should intensify during disruption, inflation, and winter hardship periods."
+  },
+  {
+    "category": "urgent_now_anchoring",
+    "tier": "nmf",
+    "description": "Terms that anchor the request in immediate urgency, present pressure, or near-term classroom need rather than long-horizon planning. DO NOT tag words that point mainly to long-run preparation or broad future readiness; career, college, and future-focused terms are NOT applicable unless paired with urgent present-tense pressure.",
+    "examples": [
+      "urgent",
+      "immediate",
+      "pressing",
+      "timely",
+      "critical",
+      "asap",
+      "acute",
+      "shortfall",
+      "near term",
+      "immediate need"
+    ],
+    "counter_examples": [
+      "career",
+      "college",
+      "future ready",
+      "workforce",
+      "pathway",
+      "long term",
+      "lifelong",
+      "preparedness"
+    ],
+    "target_coverage_pct": "15-25%",
+    "contrast_with": "future_preparation",
+    "rationale": "Winter-coat drives, replacement-supply requests, and short-notice intervention projects should score high; career-exploration labs and future-pathway projects should score low. This signal should peak in acute hardship quarters and around start-of-term shortages."
+  },
+  {
+    "category": "future_preparation",
+    "tier": "nmf",
+    "description": "Terms that frame the request as preparing students for upcoming stages, future opportunities, or longer-horizon readiness beyond the immediate classroom moment. DO NOT tag terms driven by immediate relief, emergency response, or same-week urgency; pantry, replacement, and crisis vocabulary is NOT applicable unless it explicitly points to future preparation.",
+    "examples": [
+      "future ready",
+      "career",
+      "college",
+      "pathway",
+      "workforce",
+      "postsecondary",
+      "lifelong",
+      "preparedness",
+      "readiness",
+      "tomorrow"
+    ],
+    "counter_examples": [
+      "urgent",
+      "immediate",
+      "asap",
+      "recovery",
+      "restock",
+      "breakfast",
+      "laundry",
+      "hurricane"
+    ],
+    "target_coverage_pct": "18-30%",
+    "contrast_with": "urgent_now_anchoring",
+    "rationale": "Career-tech equipment requests and college-readiness projects should score high; emergency snack pantry and post-storm rebuild requests should score low. The signal should rise in spring transition seasons and in CTE expansion periods."
+  },
+  {
+    "category": "household_basic_needs_spillover",
+    "tier": "nmf",
+    "description": "Terms that describe home-to-school transfer of basic-needs strain such as hunger, hygiene, clothing, laundry, sleep, or food insecurity affecting classroom participation. DO NOT tag structural inequity terms that name funding systems or policy context without direct household hardship; equity, Title I, and underfunded language is NOT applicable unless it points to concrete spillover needs.",
+    "examples": [
+      "hunger",
+      "snacks",
+      "breakfast",
+      "laundry",
+      "hygiene",
+      "toothbrush",
+      "deodorant",
+      "winter coat",
+      "pantry",
+      "food insecurity"
+    ],
+    "counter_examples": [
+      "equity",
+      "underfunded",
+      "title i",
+      "resource gap",
+      "overcrowded",
+      "digital divide",
+      "mandate",
+      "assessment"
+    ],
+    "target_coverage_pct": "15-25%",
+    "contrast_with": "none",
+    "rationale": "Care closets, snack carts, and winter-clothing projects should score high; multicultural library refreshes and STEM lab upgrades should score low. This signal should rise during inflation spikes, winter quarters, and post-holiday hardship periods."
+  },
+  {
+    "category": "inclusion_accommodation_framing",
+    "tier": "nmf",
+    "description": "Terms that frame the request around access logistics for disability, language access, adapted participation, or classroom accommodation. DO NOT tag cultural representation or belonging language whose main point is identity reflection or voice; heritage, mirror books, and student voice terms are NOT applicable unless the essay centers on participation logistics or accommodation.",
+    "examples": [
+      "accommodation",
+      "accessible",
+      "adapted",
+      "assistive technology",
+      "bilingual",
+      "multilingual",
+      "translation",
+      "captioned",
+      "speech language",
+      "wheelchair"
+    ],
+    "counter_examples": [
+      "heritage",
+      "identity",
+      "voice",
+      "mirrors",
+      "representation",
+      "pride",
+      "culture",
+      "belonging"
+    ],
+    "target_coverage_pct": "18-30%",
+    "contrast_with": "none",
+    "rationale": "Adaptive-seating, speech-language, and bilingual-access projects should score high; heritage-book collections and student-storytelling anthologies should score low. The signal should strengthen in inclusion-focused years and around multilingual-access pushes."
+  },
+  {
+    "category": "consumables_replenishment",
+    "tier": "nmf",
+    "description": "Terms that frame the request as restocking or repeatedly replacing items that get used up, worn down, eaten, or distributed one time. DO NOT tag durable build-out or fixed-installation language; furniture, lab stations, and stage platforms are NOT applicable unless the request is mainly about replenishment.",
+    "examples": [
+      "restock",
+      "replenish",
+      "refill",
+      "consumables",
+      "supplies",
+      "paper",
+      "snacks",
+      "batteries",
+      "hygiene kits",
+      "art supplies"
+    ],
+    "counter_examples": [
+      "furniture",
+      "greenhouse",
+      "stage",
+      "bookshelf",
+      "3d printer",
+      "carpet",
+      "tables",
+      "easel"
+    ],
+    "target_coverage_pct": "15-28%",
+    "contrast_with": "durable_infrastructure",
+    "rationale": "Snack restock, art-supply refill, and hygiene-kit projects should score high; library furniture redesigns and greenhouse construction requests should score low. This signal should rise in back-to-school and midyear depletion periods."
+  },
+  {
+    "category": "durable_infrastructure",
+    "tier": "nmf",
+    "description": "Terms that frame the request as building, installing, or acquiring durable classroom infrastructure meant to last across many cycles of use. DO NOT tag refill or one-time depletion language; restock, snacks, batteries, and hygiene kits are NOT applicable unless the essay is mainly about lasting build-out rather than replenishment.",
+    "examples": [
+      "furniture",
+      "bookshelf",
+      "tables",
+      "carpet",
+      "easel",
+      "shelving",
+      "storage unit",
+      "lab station",
+      "3d printer",
+      "stage platform"
+    ],
+    "counter_examples": [
+      "restock",
+      "replenish",
+      "refill",
+      "snacks",
+      "paper",
+      "batteries",
+      "hygiene kits",
+      "art supplies"
+    ],
+    "target_coverage_pct": "15-27%",
+    "contrast_with": "consumables_replenishment",
+    "rationale": "Library redesigns, maker-space equipment builds, and classroom furniture overhauls should score high; snack refills, battery replacements, and hygiene restocks should score low. This signal should be steadier across years, with mild back-to-school spikes when teachers propose durable room setup rather than recurring replenishment."
+  },
+  {
+    "category": "triage_repair",
+    "tier": "analysis",
+    "description": "Terms that describe patching, fixing, stabilizing, or repairing something already damaged, broken, depleted, or failing. Boundary: unlike episodic_disruption_recovery, this category is about the request type, not the temporal shape of the need. DO NOT tag general disruption or recovery words like pandemic or reopening unless the term itself names repair or patching.",
+    "examples": [
+      "repair",
+      "replace",
+      "broken",
+      "worn",
+      "damaged",
+      "fix",
+      "patch",
+      "restore",
+      "stabilize",
+      "mend"
+    ],
+    "counter_examples": [
+      "pandemic",
+      "recovery",
+      "reopen",
+      "aftermath",
+      "hurricane",
+      "shutdown",
+      "rebuilding",
+      "learning loss"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "new_program_launch",
+    "rationale": "Broken-device replacements and worn-furniture fixes should score high; robotics-club launches and new greenhouse builds should score low. This should rise in quarters following disruptions and in schools with aging equipment, but remain lower in expansion-heavy periods."
+  },
+  {
+    "category": "maintenance_replacement",
+    "tier": "analysis",
+    "description": "Terms that emphasize upkeep, routine replacement, or ongoing maintenance of existing materials rather than introducing something new. DO NOT tag launch, pilot, or first-time program language; makerspace, inaugural, and startup terms are NOT applicable unless the request is clearly about maintaining an existing setup.",
+    "examples": [
+      "replacement",
+      "maintenance",
+      "upkeep",
+      "refresh",
+      "outdated",
+      "upgrade",
+      "swap",
+      "repair cycle",
+      "refurbish",
+      "renewal"
+    ],
+    "counter_examples": [
+      "launch",
+      "pilot",
+      "inaugural",
+      "startup",
+      "new program",
+      "makerspace",
+      "debut",
+      "kickoff"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "new_program_launch",
+    "rationale": "Replacement Chromebook carts and worn-library-furniture refreshes should score high; first-time podcast studios and new debate teams should score low. This framing should be steadier over time, with small rises after heavy-use pandemic years."
+  },
+  {
+    "category": "teacher_workaround_visibility",
+    "tier": "analysis",
+    "description": "Terms that make the teacher's scarcity-management labor visible: stretching materials, improvising around gaps, buying personally, or patching systems with extra effort. DO NOT tag ordinary request nouns without workaround language; supplies, books, and devices are NOT applicable unless the essay highlights the workaround itself.",
+    "examples": [
+      "stretch",
+      "improvise",
+      "borrow",
+      "rotate",
+      "homemade",
+      "donor funded",
+      "personally purchased",
+      "teacher bought",
+      "scrounge",
+      "share"
+    ],
+    "counter_examples": [
+      "restock",
+      "replace",
+      "robotics",
+      "field trip",
+      "standards",
+      "assessment",
+      "multilingual",
+      "showcase"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Teacher-funded basic supply requests and rotating-station stopgaps should score high; straightforward lab-kit purchases and competition travel requests should score low. This should be more visible in austerity periods and in essays from heavily under-resourced classrooms."
+  },
+  {
+    "category": "basic_sufficiency",
+    "tier": "analysis",
+    "description": "Terms that mark the request as aiming for a minimal workable baseline rather than a premium upgrade or ambitious expansion. DO NOT tag aspirational build-out or showcase language; innovation, studio, and competition terms are NOT applicable unless the essay explicitly stresses first getting to a bare minimum.",
+    "examples": [
+      "essential",
+      "basic",
+      "bare",
+      "minimum",
+      "enough",
+      "fundamental",
+      "core",
+      "starter",
+      "baseline",
+      "necessities"
+    ],
+    "counter_examples": [
+      "premium",
+      "advanced",
+      "studio",
+      "competition",
+      "showcase",
+      "expansion",
+      "innovation",
+      "specialized"
+    ],
+    "target_coverage_pct": "8-16%",
+    "contrast_with": "ambitious_programmatic_ask",
+    "rationale": "Starter supply kits and first-baseline reading sets should score high; full media-lab expansions and specialized theater builds should score low. This should rise in inflation periods and in lower-cost supply requests."
+  },
+  {
+    "category": "mandate_compliance",
+    "tier": "analysis",
+    "description": "Terms that justify the request by invoking requirements, standards, service obligations, legal accommodations, or formal compliance language. Boundary: unlike readiness_to_learn, this category describes justification mode rather than student condition. DO NOT tag calm, hunger, focus, or comfort terms unless the vocabulary explicitly points to a mandate or requirement.",
+    "examples": [
+      "required",
+      "standards",
+      "compliance",
+      "mandate",
+      "iep",
+      "curriculum",
+      "state testing",
+      "documentation",
+      "service minutes",
+      "procedural"
+    ],
+    "counter_examples": [
+      "focused",
+      "nourished",
+      "sensory",
+      "calming",
+      "breakfast",
+      "comfortable",
+      "rested",
+      "engaged"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "readiness_to_learn",
+    "rationale": "Assessment-prep materials and IEP-aligned accommodation requests should score high; snack carts and calm-corner projects should score low. This should rise around standards-heavy eras, testing seasons, and post-ESSA accountability language."
+  },
+  {
+    "category": "deservingness_fairness",
+    "tier": "analysis",
+    "description": "Terms that argue students deserve equal treatment, a fair chance, or parity with peers rather than emphasizing novelty or joy. DO NOT tag generic pride or celebration language; showcase, wonder, and creativity terms are NOT applicable unless the appeal explicitly invokes fairness or deserved access.",
+    "examples": [
+      "deserve",
+      "fair",
+      "parity",
+      "justice",
+      "equitable access",
+      "worthy",
+      "rights",
+      "fairness",
+      "equal access",
+      "deserving"
+    ],
+    "counter_examples": [
+      "celebration",
+      "wonder",
+      "curiosity",
+      "studio",
+      "showcase",
+      "pride",
+      "joy",
+      "discovery"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "joy_possibility_appeal",
+    "rationale": "Resource-parity requests and equity-driven book access projects should score high; theater costume builds and robotics competitions should score low. This should rise in equity-focused years and in periods of stronger public discourse around educational fairness."
+  },
+  {
+    "category": "belonging_identity_affirmation",
+    "tier": "analysis",
+    "description": "Terms that frame the request around cultural reflection, identity affirmation, mirrors, voice, heritage, or students seeing themselves represented. Boundary: unlike inclusion_accommodation_framing, this category is about representation and voice, not disability logistics, translation, or participation access. DO NOT tag assistive, bilingual-access, or adapted-instruction terms unless the term itself signals identity reflection.",
+    "examples": [
+      "belonging",
+      "identity",
+      "student voice",
+      "home language",
+      "affirmation",
+      "pride",
+      "visibility",
+      "self worth",
+      "seen",
+      "recognized"
+    ],
+    "counter_examples": [
+      "accommodation",
+      "accessible",
+      "translation",
+      "captioned",
+      "assistive technology",
+      "wheelchair",
+      "adapted",
+      "speech language"
+    ],
+    "target_coverage_pct": "8-16%",
+    "contrast_with": "none",
+    "rationale": "Heritage-book collections and student-storytelling anthologies should score high; speech-language devices and translated directions should score low. This should rise with culturally responsive literacy waves and identity-focused curriculum periods."
+  },
+  {
+    "category": "subgroup_specific_framing",
+    "tier": "analysis",
+    "description": "Terms that narrow the request to a clearly named subgroup rather than the whole classroom population. DO NOT tag broad whole-class nouns or universal classroom references; classroom, readers, and scholars are NOT applicable unless the term explicitly marks a subgroup.",
+    "examples": [
+      "newcomers",
+      "multilingual learners",
+      "autistic",
+      "reluctant readers",
+      "emergent readers",
+      "foster youth",
+      "girls coding",
+      "preschoolers",
+      "english learners",
+      "special education"
+    ],
+    "counter_examples": [
+      "classwide",
+      "schoolwide",
+      "gradewide",
+      "homeroom",
+      "general classroom",
+      "library refresh",
+      "core classroom",
+      "class library"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "Newcomer-language access requests and autistic-student sensory projects should score high; general classroom library refreshes should score low. This should vary with enrollment shifts and periods of stronger subgroup-targeted funding language."
+  },
+  {
+    "category": "home_extension_family_colearning",
+    "tier": "analysis",
+    "description": "Terms that frame materials as intentionally traveling beyond the classroom into homes, caregivers, or family co-learning routines. DO NOT tag direct household hardship terms like pantry or hygiene spillover; groceries, winter coat, and laundry are NOT applicable unless the term points to take-home learning use rather than hardship relief.",
+    "examples": [
+      "take-home",
+      "home practice",
+      "family literacy",
+      "caregiver",
+      "home reading",
+      "bilingual books",
+      "learning bags",
+      "family night",
+      "after-school reading",
+      "colearning"
+    ],
+    "counter_examples": [
+      "pantry",
+      "laundry",
+      "hygiene",
+      "snacks",
+      "breakfast",
+      "winter coat",
+      "underfunded",
+      "equity"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Take-home literacy bags and bilingual family reading kits should score high; in-class only lab carts and pantry snack projects should score low. This should rise around summer-learning pushes and family-engagement seasons."
+  },
+  {
+    "category": "stigma_avoidance_social_confidence",
+    "tier": "analysis",
+    "description": "Terms that emphasize avoiding embarrassment, exposure, awkwardness, or social self-consciousness so students can participate confidently. DO NOT tag generic mastery or academic-growth words; benchmark, proficiency, and intervention are NOT applicable unless the term points to social confidence or stigma reduction.",
+    "examples": [
+      "embarrassed",
+      "discreet",
+      "confidence",
+      "dignity",
+      "private",
+      "peer confidence",
+      "self conscious",
+      "appearance",
+      "feel proud",
+      "social comfort"
+    ],
+    "counter_examples": [
+      "benchmark",
+      "proficiency",
+      "intervention",
+      "phonics",
+      "tutoring",
+      "rubric",
+      "assessment",
+      "practice"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Hygiene closets, uniform assistance, and sensory seating designed to reduce visible difference should score high; phonics intervention sets and test-prep binders should score low. This should rise in care-closet periods and in requests about personal-use essentials."
+  },
+  {
+    "category": "humble_plea",
+    "tier": "analysis",
+    "description": "Terms that position the request as a modest ask, appeal, or earnest plea rather than a confident investment pitch. DO NOT tag gratitude or partnership language on its own; thank you, collaboration, and sponsor are NOT applicable unless the tone is clearly supplicatory.",
+    "examples": [
+      "please",
+      "hopeful",
+      "wish",
+      "dream",
+      "requesting",
+      "appeal",
+      "plea",
+      "small ask",
+      "wish list",
+      "grateful"
+    ],
+    "counter_examples": [
+      "partner",
+      "investment",
+      "collaboration",
+      "sponsor",
+      "backing",
+      "shared vision",
+      "launch",
+      "mission"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Small classroom wish-list essays and modest supply appeals should score high; entrepreneurship labs pitched as investments should score low. This should be relatively stable, with slight rises in teacher-personalized appeals."
+  },
+  {
+    "category": "teacher_as_caregiver",
+    "tier": "analysis",
+    "description": "Terms that present the teacher primarily as protector, nurturer, comfort-provider, or day-to-day caregiver rather than as a program architect. DO NOT tag compliance or design-planning language; standards, curriculum, and pilot terms are NOT applicable unless the vocabulary explicitly centers caregiving work.",
+    "examples": [
+      "nurture",
+      "comfort",
+      "care",
+      "safe haven",
+      "encourage",
+      "reassure",
+      "trusted adult",
+      "warmth",
+      "protective",
+      "steady presence"
+    ],
+    "counter_examples": [
+      "standards",
+      "curriculum",
+      "pilot",
+      "benchmark",
+      "innovation",
+      "launch",
+      "rubric",
+      "assessment"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Calm-corner essays and care-closet requests should score high; standards-aligned STEM pilots should score low. This should rise during SEL-focused periods and post-pandemic wellness emphasis."
+  },
+  {
+    "category": "anecdote_scene_setting",
+    "tier": "analysis",
+    "description": "Terms that cue a narrated vignette, classroom moment, or scene-setting observation rather than a bare abstract summary. Boundary: unlike sensory_detail, this category requires a story-like moment or observed scene; unlike causal_specificity, it does not require an explicit material-to-outcome chain. DO NOT tag isolated tactile words or generic mechanism words such as sensory or outcome unless the term helps build a vignette.",
+    "examples": [
+      "storytime",
+      "circle time",
+      "read aloud",
+      "arrival",
+      "recess",
+      "centers",
+      "hallway",
+      "morning meeting",
+      "small moment",
+      "classroom scene"
+    ],
+    "counter_examples": [
+      "sensory",
+      "textured",
+      "quiet",
+      "mechanism",
+      "outcome",
+      "benchmark",
+      "assessment",
+      "rubric"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Anecdotal read-aloud and morning-routine essays should score high; terse equipment requests and standards-justified intervention essays should score low. This should stay moderate overall, with slightly higher prevalence in early childhood and elementary literacy writing."
+  },
+  {
+    "category": "observation_testimony",
+    "tier": "analysis",
+    "description": "Terms that rely on witnessed classroom observation, teacher testimony, or direct lived evidence rather than formal metrics or external justification. DO NOT tag standards, benchmark, or research terms unless the vocabulary itself signals witnessing or testimony.",
+    "examples": [
+      "noticed",
+      "observed",
+      "witnessed",
+      "daily observation",
+      "classroom reality",
+      "lived experience",
+      "daily patterns",
+      "teacher observation",
+      "firsthand",
+      "recurring pattern"
+    ],
+    "counter_examples": [
+      "benchmark",
+      "data",
+      "research",
+      "standards",
+      "assessment",
+      "evidence based",
+      "measurement",
+      "percentile"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "standards_research_justification",
+    "rationale": "Teacher-witness essays about attention, reading habits, or classroom routines should score high; data-heavy intervention requests should score low. This should be fairly stable, with somewhat higher use in elementary and relationship-centered essays."
+  },
+  {
+    "category": "standards_research_justification",
+    "tier": "analysis",
+    "description": "Terms that justify the request with formal standards, benchmark language, evidence-based practice, or external research authority. DO NOT tag personal observation or scene-setting language; noticed, watched, and circle time are NOT applicable unless they accompany an explicit standards or research frame.",
+    "examples": [
+      "evidence based",
+      "research",
+      "standards aligned",
+      "data",
+      "assessment",
+      "best practice",
+      "state standards",
+      "rubric",
+      "proficiency",
+      "measurable"
+    ],
+    "counter_examples": [
+      "storytime",
+      "circle time",
+      "classroom scene",
+      "arrival",
+      "recess",
+      "observed",
+      "witnessed",
+      "daily observation"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "observation_testimony",
+    "rationale": "Standards-aligned literacy intervention requests and benchmark-driven math projects should score high; anecdotal read-aloud or cozy-corner essays should score low. This should rise in testing seasons and standards-heavy policy periods."
+  },
+  {
+    "category": "sensory_detail",
+    "tier": "analysis",
+    "description": "Terms with tactile, auditory, visual, kinesthetic, or regulation-related perceptual vocabulary, regardless of whether a full story or explicit outcome chain is present. Boundary: unlike anecdote_scene_setting, this category does not require a vignette; unlike causal_specificity, it fires on perceptual language even without a usage-to-result chain. DO NOT tag generic engagement or aspiration words such as exciting, creativity, or confidence unless the term itself is perceptual.",
+    "examples": [
+      "soft",
+      "quiet",
+      "bright",
+      "textured",
+      "noise",
+      "sensory input",
+      "weighted",
+      "fuzzy",
+      "dim",
+      "movement breaks"
+    ],
+    "counter_examples": [
+      "storytime",
+      "circle time",
+      "benchmark",
+      "rubric",
+      "outcome",
+      "curiosity",
+      "joy",
+      "showcase"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "Sensory-room materials, textured reading supports, and noise-reduction projects should score high; benchmark rubrics and generic aspiration essays should score low. This should rise with SEL and neurodiversity-related requests over time."
+  },
+  {
+    "category": "causal_specificity",
+    "tier": "analysis",
+    "description": "Terms that make the mechanism explicit by linking materials, activities, and outcomes in a clear use-to-result chain. Boundary: unlike sensory_detail, this category does not require perceptual vocabulary; unlike anecdote_scene_setting, it does not require a story moment. DO NOT tag generic uplift words such as confidence, curiosity, or success language unless the term is part of an explicit mechanism or outcome chain.",
+    "examples": [
+      "scaffold",
+      "targeted practice",
+      "skill building",
+      "transfer",
+      "application",
+      "reinforcement",
+      "sequenced",
+      "directly",
+      "strategy use",
+      "measurable outcome"
+    ],
+    "counter_examples": [
+      "soft",
+      "quiet",
+      "textured",
+      "storytime",
+      "circle time",
+      "curiosity",
+      "joy",
+      "pride"
+    ],
+    "target_coverage_pct": "10-18%",
+    "contrast_with": "none",
+    "rationale": "Phonics tool requests and structured science-kit proposals should score high; broad wish-list essays and purely atmospheric classroom redesigns should score low. This should be relatively stable, with somewhat higher prevalence in intervention and special-education writing."
+  },
+  {
+    "category": "inquiry_exploration",
+    "tier": "analysis",
+    "description": "Terms that frame learning as questioning, investigating, experimenting, or open-ended discovery rather than routine drill or repetition. DO NOT tag remediation or benchmark language; intervention, decodable, and proficiency terms are NOT applicable unless the vocabulary clearly signals inquiry.",
+    "examples": [
+      "inquiry",
+      "investigate",
+      "experiment",
+      "questioning",
+      "hypothesis",
+      "wonder",
+      "open ended",
+      "investigation",
+      "discover",
+      "problem solving"
+    ],
+    "counter_examples": [
+      "intervention",
+      "phonics",
+      "benchmark",
+      "proficiency",
+      "worksheet",
+      "drill",
+      "practice test",
+      "remediation"
+    ],
+    "target_coverage_pct": "8-16%",
+    "contrast_with": "readiness_to_learn",
+    "rationale": "Science-investigation kits and project-based STEM requests should score high; phonics remediation packets and test-prep binders should score low. This should rise in makerspace and STEM push periods after the pandemic recovery trough."
+  },
+  {
+    "category": "student_choice_autonomy",
+    "tier": "analysis",
+    "description": "Terms that emphasize choice, self-direction, ownership, or learner autonomy in how students engage with materials or tasks. DO NOT tag safety, regulation, or containment terms; calming, de-escalation, and sensory language are NOT applicable unless the essay explicitly centers choice or self-direction.",
+    "examples": [
+      "choice",
+      "ownership",
+      "independent",
+      "self directed",
+      "choice board",
+      "agency",
+      "voice",
+      "personalized",
+      "select",
+      "student led"
+    ],
+    "counter_examples": [
+      "calming",
+      "safe",
+      "sensory",
+      "decompress",
+      "headphones",
+      "regulated",
+      "quiet corner",
+      "reduce anxiety"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "regulation_safety_need",
+    "rationale": "Independent-reading choice projects and student-led media labs should score high; calm-corner and sensory-tool requests should score low. This should rise in project-based learning periods and secondary elective spaces."
+  },
+  {
+    "category": "collaborative_social_learning",
+    "tier": "analysis",
+    "description": "Terms that frame the request around teamwork, peer interaction, dialogue, or shared production rather than solitary individualized work. DO NOT tag subgroup labels or individual accommodation language; one-to-one, intervention, and adaptive terms are NOT applicable unless the term explicitly names collaborative learning.",
+    "examples": [
+      "collaboration",
+      "peer",
+      "teamwork",
+      "discussion",
+      "cooperative",
+      "group work",
+      "social skills",
+      "shared",
+      "dialogue",
+      "together"
+    ],
+    "counter_examples": [
+      "individualized",
+      "solo",
+      "independent",
+      "speech therapy",
+      "intervention",
+      "adaptive",
+      "headphones",
+      "quiet work"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "Debate circles, makerspace collaboration tables, and cooperative STEM kits should score high; one-to-one intervention or independent calm-corner requests should score low. This should rise in project-based and post-isolation rebuilding periods."
+  },
+  {
+    "category": "expressive_creative_production",
+    "tier": "analysis",
+    "description": "Terms that frame the request around making, composing, designing, performing, or producing original student work rather than only consuming or practicing. DO NOT tag reading-level repair or passive reception terms; decodable, intervention, and listening-only vocabulary are NOT applicable unless students are creating something.",
+    "examples": [
+      "create",
+      "design",
+      "compose",
+      "perform",
+      "build",
+      "publish",
+      "craft",
+      "produce",
+      "self expression",
+      "artistic"
+    ],
+    "counter_examples": [
+      "decodable",
+      "intervention",
+      "worksheet",
+      "benchmark",
+      "listen",
+      "watch",
+      "practice test",
+      "remediation"
+    ],
+    "target_coverage_pct": "8-16%",
+    "contrast_with": "none",
+    "rationale": "Theater set builds, student publishing projects, and visual-arts requests should score high; phonics recovery kits and passive listening stations should score low. This should rise in arts-rich quarters and exhibition seasons."
+  },
+  {
+    "category": "experiential_hands_on_learning",
+    "tier": "analysis",
+    "description": "Terms that emphasize tactile, manipulative, lab-based, or embodied learning rather than primarily text-based or screen-based instruction. DO NOT tag generic sensory-regulation vocabulary; weighted, calming, and quiet are NOT applicable unless the term refers to academic hands-on learning rather than comfort.",
+    "examples": [
+      "hands-on",
+      "manipulatives",
+      "lab",
+      "experiment",
+      "build",
+      "tactile",
+      "interactive",
+      "maker",
+      "stem kits",
+      "investigation"
+    ],
+    "counter_examples": [
+      "weighted",
+      "calming",
+      "quiet",
+      "headphones",
+      "soft",
+      "cozy",
+      "decompress",
+      "safe haven"
+    ],
+    "target_coverage_pct": "10-18%",
+    "contrast_with": "none",
+    "rationale": "Science lab kits, math manipulatives, and maker projects should score high; calm-corner and weighted-blanket requests should score low. This should be stable but slightly higher during STEM initiative periods."
+  },
+  {
+    "category": "authentic_audience_real_world",
+    "tier": "analysis",
+    "description": "Terms that frame the request around real-world application, public audience, publication, performance, or learning that reaches beyond the classroom bubble. DO NOT tag generic future-readiness or vague career terms alone; career and pathway are NOT applicable unless the vocabulary points to authentic output or external audience.",
+    "examples": [
+      "publish",
+      "audience",
+      "podcast",
+      "newspaper",
+      "community garden",
+      "internship",
+      "public reading",
+      "broadcast",
+      "real world",
+      "client"
+    ],
+    "counter_examples": [
+      "career",
+      "future ready",
+      "pathway",
+      "college",
+      "preparedness",
+      "benchmark",
+      "worksheet",
+      "intervention"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Student newspaper, podcast, and exhibition projects should score high; basic workbook replenishment and test-prep requests should score low. This should rise in spring showcase seasons and in project-based learning pushes."
+  },
+  {
+    "category": "regulation_sel_enablement",
+    "tier": "analysis",
+    "description": "Terms that link materials to social-emotional skill-building, self-management, empathy, coping, or classroom relationship skills rather than academic mastery alone. DO NOT tag broad readiness or comfort vocabulary without SEL language; breakfast, warm clothing, and quiet are NOT applicable unless the term itself points to SEL development.",
+    "examples": [
+      "social emotional",
+      "self regulation",
+      "coping",
+      "empathy",
+      "mindfulness",
+      "self awareness",
+      "de-escalation",
+      "relationship skills",
+      "emotional literacy",
+      "co-regulation"
+    ],
+    "counter_examples": [
+      "breakfast",
+      "winter coat",
+      "quiet",
+      "comfortable",
+      "rested",
+      "benchmark",
+      "phonics",
+      "proficiency"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "SEL curriculum kits and calm-space reflection tools should score high; breakfast carts and phonics intervention sets should score low. This should rise after 2020 as schools foreground mental health and SEL."
+  },
+  {
+    "category": "empathy_invitation",
+    "tier": "analysis",
+    "description": "Terms that invite the donor to feel with students through compassion, care, comfort, or human closeness rather than through institutional logic or metrics. DO NOT tag accountability or compliance language; standards, benchmark, and evidence-based terms are NOT applicable unless the vocabulary itself asks for emotional identification.",
+    "examples": [
+      "compassion",
+      "care",
+      "comfort",
+      "heart",
+      "kindness",
+      "uplifting",
+      "human",
+      "care deeply",
+      "nurturing",
+      "touching"
+    ],
+    "counter_examples": [
+      "benchmark",
+      "standards",
+      "assessment",
+      "evidence based",
+      "rubric",
+      "compliance",
+      "required",
+      "documentation"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "institutional_accountability_signals",
+    "rationale": "Care-closet essays and personal classroom narratives should score high; rubric-driven intervention requests should score low. This should rise in winter hardship appeals and in highly personalized teacher narratives."
+  },
+  {
+    "category": "partnership_investment",
+    "tier": "analysis",
+    "description": "Terms that position donors as partners, backers, or investors in a shared project rather than rescuers meeting an emergency. DO NOT tag humble plea or emergency language; please, urgent, and crisis are NOT applicable unless the vocabulary explicitly frames the donor as a partner or co-builder.",
+    "examples": [
+      "partner",
+      "investment",
+      "backing",
+      "sponsor",
+      "partnership",
+      "stakeholder",
+      "seed funding",
+      "shared vision",
+      "backer",
+      "collaborative"
+    ],
+    "counter_examples": [
+      "please",
+      "urgent",
+      "crisis",
+      "asap",
+      "rescue",
+      "emergency",
+      "survival",
+      "immediate"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Entrepreneurship labs, garden builds, and media-studio launches should score high; emergency hygiene kits and winter-coat drives should score low. This should be more common in growth-oriented periods than in acute-crisis quarters."
+  },
+  {
+    "category": "joy_possibility_appeal",
+    "tier": "analysis",
+    "description": "Terms that persuade through delight, inspiration, wonder, celebration, or excitement about what becomes possible. DO NOT tag prevention or harm-avoidance language; missed, urgent, and falling behind are NOT applicable unless the main force of the term is positive possibility rather than averting loss.",
+    "examples": [
+      "joy",
+      "wonder",
+      "spark",
+      "celebration",
+      "delight",
+      "magic",
+      "inspire",
+      "exciting",
+      "possibility",
+      "dream big"
+    ],
+    "counter_examples": [
+      "urgent",
+      "prevent",
+      "missed",
+      "setback",
+      "attendance",
+      "protect",
+      "hunger",
+      "crisis"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "loss_avoidance",
+    "rationale": "Arts showcase requests, playground builds, and imaginative literacy projects should score high; attendance-intervention and pantry essays should score low. This should rebound in post-crisis periods and in arts-rich seasons."
+  },
+  {
+    "category": "gratitude_orientation",
+    "tier": "analysis",
+    "description": "Terms that orient the essay toward thanking, appreciation, and donor acknowledgment rather than detailing mission or mechanism. DO NOT tag modest asking or partnership language alone; please, sponsor, and join us are NOT applicable unless the vocabulary explicitly centers gratitude.",
+    "examples": [
+      "thank",
+      "grateful",
+      "appreciate",
+      "thankful",
+      "gratitude",
+      "blessed",
+      "appreciation",
+      "generosity",
+      "kindness",
+      "thankfulness"
+    ],
+    "counter_examples": [
+      "please",
+      "partner",
+      "investment",
+      "shared vision",
+      "urgent",
+      "benchmark",
+      "targeted practice",
+      "rubric"
+    ],
+    "target_coverage_pct": "8-16%",
+    "contrast_with": "none",
+    "rationale": "Teacher-thank-you closing sections and heartfelt supply appeals should score high; terse standards-based intervention requests should score low. This should be fairly stable, with slightly higher rates in smaller personal classroom appeals."
+  },
+  {
+    "category": "relationship_building_ask",
+    "tier": "analysis",
+    "description": "Terms that frame the ask as the start or continuation of an ongoing relationship with supporters rather than a one-off transaction. DO NOT tag simple thank-you closings or urgent-now terms; gratitude alone, asap, and replacement language are NOT applicable unless the term explicitly signals sustained relationship or shared journey.",
+    "examples": [
+      "ongoing",
+      "journey",
+      "continuation",
+      "sustained",
+      "follow-up",
+      "series",
+      "return donors",
+      "continuing",
+      "phase two",
+      "next chapter"
+    ],
+    "counter_examples": [
+      "gratitude",
+      "urgent",
+      "replacement",
+      "restock",
+      "benchmark",
+      "one-off",
+      "immediate",
+      "asap"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Multi-phase garden builds and classroom publication programs should score high; one-off emergency restock requests should score low. This should be more common in recurring program launches than in short-term relief appeals."
+  },
+  {
+    "category": "event_news_disaster_anchoring",
+    "tier": "analysis",
+    "description": "Terms that anchor the request to a named event, newsworthy disruption, disaster, or public crisis rather than to ordinary classroom chronology. DO NOT tag generic urgent or recovery language without a named event context; urgent, immediate, and rebuilding are NOT applicable unless they point to a specific event or disaster frame.",
+    "examples": [
+      "covid",
+      "pandemic",
+      "hurricane",
+      "wildfire",
+      "flood",
+      "evacuation",
+      "shutdown",
+      "reopening",
+      "smoke",
+      "storm damage"
+    ],
+    "counter_examples": [
+      "urgent",
+      "immediate",
+      "restock",
+      "replacement",
+      "back to school",
+      "winter coat",
+      "spring showcase",
+      "future ready"
+    ],
+    "target_coverage_pct": "4-8%",
+    "contrast_with": "none",
+    "rationale": "Post-hurricane classroom rebuilds and COVID-response device projects should score high; routine pantry restocks and ordinary replacement requests should score low. This should spike sharply around major disruptions and then recede."
+  },
+  {
+    "category": "seasonal_school_calendar_anchoring",
+    "tier": "analysis",
+    "description": "Terms that tie the request to a recurring season or school-calendar moment such as back to school, summer reading, holiday drives, testing season, or winter weather. DO NOT tag general urgency or milestone language without a seasonal anchor; urgent and showcase are NOT applicable unless the term names a calendar period.",
+    "examples": [
+      "back to school",
+      "summer reading",
+      "winter",
+      "holiday",
+      "testing season",
+      "spring concert",
+      "end of term",
+      "graduation",
+      "school year",
+      "summer slide"
+    ],
+    "counter_examples": [
+      "urgent",
+      "pandemic",
+      "recovery",
+      "showcase",
+      "career",
+      "future ready",
+      "pilot",
+      "ongoing"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Back-to-school supply lists, winter-clothing drives, and summer-reading projects should score high; evergreen library refreshes and year-round makerspace asks should score low. This should cycle predictably by quarter."
+  },
+  {
+    "category": "milestone_culmination_framing",
+    "tier": "analysis",
+    "description": "Terms that frame the request around a culminating performance, showcase, graduation, capstone, or final product rather than routine daily instruction. DO NOT tag ordinary public-audience or seasonal terms unless the vocabulary specifically marks culmination or a final milestone.",
+    "examples": [
+      "showcase",
+      "culminating",
+      "capstone",
+      "graduation",
+      "performance",
+      "recital",
+      "final project",
+      "exhibition night",
+      "celebration",
+      "senior"
+    ],
+    "counter_examples": [
+      "back to school",
+      "summer reading",
+      "ongoing",
+      "daily routine",
+      "practice",
+      "restock",
+      "pandemic",
+      "urgent"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Senior capstone displays and spring concert projects should score high; everyday reading-corner replenishment should score low. This should rise in spring and end-of-year quarters."
+  },
+  {
+    "category": "learner_variability_complexity",
+    "tier": "analysis",
+    "description": "Terms that emphasize wide variation in readiness, language, disability, pace, or learning profile within the same room or service setting. DO NOT tag a single named subgroup unless the vocabulary signals multiple profiles or differentiation complexity; newcomers or autistic alone are NOT applicable unless the term points to mixed-needs variation.",
+    "examples": [
+      "wide range",
+      "diverse learners",
+      "mixed levels",
+      "different abilities",
+      "varied needs",
+      "learning styles",
+      "differentiated",
+      "multilevel",
+      "heterogeneous",
+      "varied readiness"
+    ],
+    "counter_examples": [
+      "newcomers",
+      "autistic",
+      "gifted",
+      "special education",
+      "english learners",
+      "girls coding",
+      "preschoolers",
+      "single group"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "Mixed-readiness classroom library and differentiated station projects should score high; subgroup-targeted sensory kits for one population should score low. This should grow with heterogeneous classroom language and inclusion expansion."
+  },
+  {
+    "category": "trend_responsive_framing",
+    "tier": "analysis",
+    "description": "Terms that hook the request to a current fad, platform trend, buzzword, or newly salient discourse rather than a stable instructional need. DO NOT tag long-standing curricular language; standards, phonics, and read-aloud terms are NOT applicable unless the vocabulary clearly points to a trend-responsive frame.",
+    "examples": [
+      "booktok",
+      "ai",
+      "esports",
+      "podcast",
+      "makerspace",
+      "coding",
+      "virtual reality",
+      "stem challenge",
+      "career readiness",
+      "3d printing"
+    ],
+    "counter_examples": [
+      "phonics",
+      "benchmark",
+      "read aloud",
+      "manipulatives",
+      "worksheet",
+      "winter coat",
+      "laundry",
+      "breakfast"
+    ],
+    "target_coverage_pct": "4-8%",
+    "contrast_with": "none",
+    "rationale": "AI-literacy prompts, esports equipment, and BookTok-inspired library requests should score high; steady phonics and pantry projects should score low. This should vary sharply by year, especially after 2023 for AI-related terms."
+  },
+  {
+    "category": "deadline_window_pressure",
+    "tier": "analysis",
+    "description": "Terms that stress a narrow timing window, closing opportunity, or fixed deadline rather than ordinary urgency alone. DO NOT tag broad urgent-now language without a time window; urgent, immediate, and pressing are NOT applicable unless the vocabulary signals a closing window or deadline.",
+    "examples": [
+      "deadline",
+      "testing window",
+      "application window",
+      "cutoff",
+      "registration deadline",
+      "before testing",
+      "before graduation",
+      "closing soon",
+      "last chance",
+      "schedule pressure"
+    ],
+    "counter_examples": [
+      "urgent",
+      "immediate",
+      "asap",
+      "recovery",
+      "future ready",
+      "summer reading",
+      "ongoing",
+      "steady"
+    ],
+    "target_coverage_pct": "4-8%",
+    "contrast_with": "none",
+    "rationale": "Performance-season costume requests and before-testing intervention asks should score high; evergreen class-library refreshes should score low. This should peak in testing windows and end-of-year performance periods."
+  },
+  {
+    "category": "underfunding_inequity_context",
+    "tier": "analysis",
+    "description": "Terms that name structural resource inequity, funding gaps, or systemic disadvantage as the context for the request. Boundary: unlike household_basic_needs_spillover, this category names institutional causes rather than direct home-to-school hardship transfer. DO NOT tag pantry, hygiene, laundry, or breakfast terms unless the vocabulary itself points to structural underfunding or inequity.",
+    "examples": [
+      "underfunded",
+      "equity",
+      "resource gap",
+      "title i",
+      "high poverty",
+      "underserved",
+      "digital divide",
+      "overcrowded",
+      "funding gap",
+      "low income"
+    ],
+    "counter_examples": [
+      "pantry",
+      "laundry",
+      "hygiene",
+      "breakfast",
+      "snacks",
+      "winter coat",
+      "toothbrush",
+      "deodorant"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Title I classroom technology requests and equity-framed library access projects should score high; pantry snack carts and hygiene closets should score low. This should rise during equity-focused discourse and in years of stronger public attention to the digital divide."
+  },
+  {
+    "category": "place_community_specific_context",
+    "tier": "analysis",
+    "description": "Terms that root the request in a specific local setting, neighborhood, region, or place-based circumstance rather than an abstract classroom anywhere. DO NOT tag generic culture or equity words without place reference; identity, fairness, and belonging are NOT applicable unless the vocabulary points to a concrete locale or local condition.",
+    "examples": [
+      "neighborhood",
+      "reservation",
+      "farm town",
+      "coastal",
+      "desert",
+      "mountain",
+      "city block",
+      "bayou",
+      "local history",
+      "hometown"
+    ],
+    "counter_examples": [
+      "equity",
+      "belonging",
+      "identity",
+      "culture",
+      "benchmark",
+      "intervention",
+      "summer reading",
+      "showcase"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Place-based ecology projects and neighborhood-history collections should score high; generic intervention kits and decontextualized supply requests should score low. This should vary by geography and by projects tied to local curriculum themes."
+  },
+  {
+    "category": "rural_scarcity_dispersion",
+    "tier": "analysis",
+    "description": "Terms that frame need through distance, small scale, isolation, transport constraints, or thin local access typical of dispersed settings. DO NOT tag urban crowding or generic underfunding terms; overcrowded, title i, and equity are NOT applicable unless the vocabulary specifically signals distance or dispersion.",
+    "examples": [
+      "rural",
+      "remote",
+      "isolated",
+      "long bus ride",
+      "distance",
+      "small town",
+      "miles away",
+      "transport",
+      "sparse",
+      "limited nearby"
+    ],
+    "counter_examples": [
+      "overcrowded",
+      "dense",
+      "apartment",
+      "downtown",
+      "high rise",
+      "subway",
+      "city block",
+      "urban campus"
+    ],
+    "target_coverage_pct": "4-8%",
+    "contrast_with": "none",
+    "rationale": "Remote-school library access requests and travel-constrained science projects should score high; dense urban classroom crowding essays should score low. This should vary mainly by geography rather than by quarter, with mild spikes in winter-weather periods."
+  },
+  {
+    "category": "safety_protection_language",
+    "tier": "analysis",
+    "description": "Terms that frame the request around shielding students from harm, hazard, exposure, or unsafe environments at the classroom or institutional level. DO NOT tag sensory-calming or SEL vocabulary unless the term points to protection from external harm; fidget, mindfulness, and cozy are NOT applicable on their own.",
+    "examples": [
+      "safe",
+      "secure",
+      "shield",
+      "hazard",
+      "clean air",
+      "sanitation",
+      "air quality",
+      "emergency",
+      "lockdown",
+      "protection"
+    ],
+    "counter_examples": [
+      "fidget",
+      "mindfulness",
+      "cozy",
+      "headphones",
+      "curiosity",
+      "showcase",
+      "joy",
+      "podcast"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Air purifier requests, sanitation projects, and emergency-preparedness materials should score high; art-showcase and inquiry-kit essays should score low. This should spike around public-health periods and after school safety incidents."
+  },
+  {
+    "category": "representation_cultural_reflection",
+    "tier": "analysis",
+    "description": "Terms that stress culturally reflective materials, mirror texts, heritage visibility, or students seeing their communities represented in the curriculum. DO NOT tag disability accommodation or simple place reference; translation, wheelchair, and rural are NOT applicable unless the vocabulary itself signals cultural reflection.",
+    "examples": [
+      "mirror books",
+      "representation",
+      "heritage",
+      "culturally relevant",
+      "identity texts",
+      "diverse books",
+      "bilingual authors",
+      "mirrors",
+      "voices",
+      "heritage texts"
+    ],
+    "counter_examples": [
+      "translation",
+      "wheelchair",
+      "captioned",
+      "rural",
+      "underfunded",
+      "benchmark",
+      "assistive technology",
+      "winter coat"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Multicultural library requests and identity-text collections should score high; adaptive seating and pantry restock essays should score low. This should rise with culturally responsive teaching waves and publishing trends."
+  },
+  {
+    "category": "institutional_accountability_signals",
+    "tier": "analysis",
+    "description": "Terms that signal auditability, stewardship, measurable use, or responsible management rather than emotional intimacy. DO NOT tag empathy or gratitude language; compassion, heart, and thankful are NOT applicable unless the term itself stresses accountability or stewardship.",
+    "examples": [
+      "accountability",
+      "measurable",
+      "track",
+      "document",
+      "stewardship",
+      "responsible",
+      "aligned",
+      "outcomes",
+      "monitor",
+      "evidence"
+    ],
+    "counter_examples": [
+      "compassion",
+      "heart",
+      "thankful",
+      "kindness",
+      "joy",
+      "wonder",
+      "please",
+      "dream"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "empathy_invitation",
+    "rationale": "Measurable intervention programs and tightly justified tech requests should score high; heartfelt care-closet essays should score low. This should rise in data-heavy eras and in projects framed for institutional credibility."
+  },
+  {
+    "category": "system_bundle_request",
+    "tier": "analysis",
+    "description": "Terms that frame the request as an interconnected set of items or a full system rather than a single keystone item. DO NOT tag lone flagship objects; microscope, rug, or printer are NOT applicable unless the vocabulary makes clear the ask is a coordinated bundle.",
+    "examples": [
+      "set",
+      "bundle",
+      "full kit",
+      "class set",
+      "complete system",
+      "collection",
+      "package",
+      "series",
+      "multiple stations",
+      "suite"
+    ],
+    "counter_examples": [
+      "microscope",
+      "rug",
+      "printer",
+      "camera",
+      "greenhouse",
+      "easel",
+      "headphones",
+      "ukulele"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "Class-set literacy kits and full calm-corner packages should score high; single 3D-printer or one-rug requests should score low. This should stay stable, with modest rises in packaged curriculum and starter-kit projects."
+  },
+  {
+    "category": "invisible_enabling_supports",
+    "tier": "analysis",
+    "description": "Terms that point to background supports that make participation possible without being the main visible instructional object. DO NOT tag tangible feature items or showcase equipment; robot, ukulele, and bookshelf are NOT applicable unless the vocabulary itself signals behind-the-scenes enabling support.",
+    "examples": [
+      "storage",
+      "organization",
+      "charging",
+      "wifi",
+      "software",
+      "licensing",
+      "air purifier",
+      "cleaning",
+      "maintenance supplies",
+      "bandwidth"
+    ],
+    "counter_examples": [
+      "robot",
+      "ukulele",
+      "bookshelf",
+      "camera",
+      "podcast mic",
+      "stage",
+      "paint set",
+      "garden bed"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Charging-cart, software-license, and translation-tool projects should score high; theater-set lumber and robotics kits should score low. This should grow in device-heavy and multilingual-access periods."
+  },
+  {
+    "category": "student_owned_personal_use",
+    "tier": "analysis",
+    "description": "Terms that describe items kept by individual students for personal use rather than shared classroom resources. DO NOT tag shared stations or communal furniture; class set, makerspace, and library are NOT applicable unless the term explicitly signals individual ownership or take-home assignment.",
+    "examples": [
+      "personal",
+      "individual",
+      "own copy",
+      "take-home book",
+      "personal kit",
+      "backpack",
+      "hygiene kit",
+      "notebook",
+      "headphones",
+      "personal supplies"
+    ],
+    "counter_examples": [
+      "class set",
+      "library",
+      "makerspace",
+      "shared",
+      "station",
+      "group table",
+      "center",
+      "lab cart"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "none",
+    "rationale": "Personal hygiene kits, take-home books, and own-copy workbook requests should score high; shared makerspace tables and whole-class library shelves should score low. This should rise in care-closet and take-home learning periods."
+  },
+  {
+    "category": "portable_flexible_resource",
+    "tier": "analysis",
+    "description": "Terms that emphasize portability, mobility, modularity, or flexible movement across spaces rather than fixed installation. DO NOT tag built-in or permanent infrastructure terms; stage, wall mount, and greenhouse are NOT applicable unless the resource is explicitly mobile or modular.",
+    "examples": [
+      "portable",
+      "mobile",
+      "rolling cart",
+      "clipboards",
+      "travel kit",
+      "modular",
+      "folding",
+      "grab-and-go",
+      "lightweight",
+      "cart"
+    ],
+    "counter_examples": [
+      "stage",
+      "wall mounted",
+      "greenhouse",
+      "fixed",
+      "installed",
+      "anchored",
+      "permanent",
+      "built-in"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "none",
+    "rationale": "Rolling STEM carts and grab-and-go literacy kits should score high; greenhouse installations and fixed stage-lighting projects should score low. This should rise in shared-space schools and multipurpose-room contexts."
+  },
+  {
+    "category": "comfort_environment_atmosphere",
+    "tier": "analysis",
+    "description": "Terms that frame the request around the feel of the room\u2014coziness, ambiance, warmth, softness, or welcoming atmosphere\u2014rather than a direct instructional mechanism. DO NOT tag explicit sensory-regulation or causal-mechanism language; self regulate, used for, and benchmark are NOT applicable unless the term is mainly about atmosphere.",
+    "examples": [
+      "cozy",
+      "welcoming",
+      "warm",
+      "inviting",
+      "comfortable",
+      "calm atmosphere",
+      "soft lighting",
+      "reading nook",
+      "homey",
+      "peaceful"
+    ],
+    "counter_examples": [
+      "self regulate",
+      "reduce anxiety",
+      "benchmark",
+      "phonics",
+      "assessment",
+      "intervention",
+      "targeted practice",
+      "proficiency"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "none",
+    "rationale": "Reading-nook rugs, lamp-lighting, and classroom ambiance projects should score high; phonics intervention kits and benchmark-prep materials should score low. This should be fairly stable, with mild rises in literacy-corner redesign trends."
+  },
+  {
+    "category": "ambitious_programmatic_ask",
+    "tier": "analysis",
+    "description": "Terms that frame the request as a substantial build-out, specialized initiative, or multi-part program rather than a modest baseline purchase. DO NOT tag starter, essential, or bare-minimum terms; basic, necessities, and refill are NOT applicable unless the vocabulary clearly signals a large programmatic scope.",
+    "examples": [
+      "program",
+      "initiative",
+      "academy",
+      "lab",
+      "studio",
+      "specialized",
+      "expansion",
+      "curriculum set",
+      "cohort",
+      "signature"
+    ],
+    "counter_examples": [
+      "basic",
+      "starter",
+      "essential",
+      "minimum",
+      "refill",
+      "restock",
+      "replacement",
+      "necessities"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "basic_sufficiency",
+    "rationale": "Media-lab builds and academy-style STEM initiatives should score high; starter supply kits and pantry refills should score low. This should rise in non-crisis periods and in schools pursuing visible program growth."
+  },
+  {
+    "category": "new_program_launch",
+    "tier": "analysis",
+    "description": "Terms that indicate a first-time launch, debut, pilot, or startup rather than maintaining or repairing something already in place. DO NOT tag upkeep or replacement language; repair, refresh, and worn out are NOT applicable unless the vocabulary clearly signals a new launch.",
+    "examples": [
+      "launch",
+      "pilot",
+      "debut",
+      "startup",
+      "kickoff",
+      "new program",
+      "inaugural",
+      "rollout",
+      "beginning",
+      "startup club"
+    ],
+    "counter_examples": [
+      "repair",
+      "replacement",
+      "refresh",
+      "outdated",
+      "maintenance",
+      "refill",
+      "restock",
+      "restore"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "triage_repair",
+    "rationale": "First-time podcast studios and inaugural gardening clubs should score high; broken-device replacements and worn-furniture refreshes should score low. This should be more common in post-crisis expansion periods than in disruption-heavy quarters."
+  }
+]
