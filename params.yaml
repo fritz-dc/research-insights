@@ -31,40 +31,75 @@ enrichment:
   min_inject_projects: 25            # Minimum number of projects that must support an enrichment signal before it is injected back into the corpus.
   max_doc_freq_for_injection: 25000  # Maximum document frequency allowed for a candidate enrichment term before it is considered too common to inject.
   classify_batch_size: 150           # Number of items sent per batch during LLM or embedding-based enrichment classification.
-  embedding_model: "all-MiniLM-L6-v2"     # Sentence-transformer model used to create embeddings for enrichment similarity / clustering work.
-  cache_schema_version: "v1"              # Manual cache version string; change this to invalidate prior cached enrichment artifacts.
-  coverage_deviation_warn_threshold: 10   # Warning threshold, in percentage points, when realized enrichment coverage deviates from the target/expected coverage.
-  force_reclassify: true                  # Whether to re-run enrichment classification even when cached framing / classification outputs already exist.
+  embedding_model: "all-MiniLM-L6-v2"  # Sentence-transformer model used to create embeddings for enrichment similarity / clustering work.
+  cache_schema_version: "v1"           # Manual cache version string; change this to invalidate prior cached enrichment artifacts.
+  coverage_deviation_warn_threshold: 10  # Warning threshold, in percentage points, when realized enrichment coverage deviates from the target / expected coverage.
+  force_reclassify: true                # Whether to re-run enrichment classification even when cached framing / classification outputs already exist.
 
 analysis:
   group_by: project_category       # Single column used to split the corpus into analysis groups; downstream code expects a scalar field name, not a list.
   min_group_projects: 50           # Minimum number of projects required for a group to be analyzed.
-  min_coverage: 6                  # Minimum coverage threshold a topic/signal must meet within a group to be retained in analysis outputs.
+  min_coverage: 6                  # Minimum coverage threshold a topic / signal must meet within a group to be retained in analysis outputs.
   topic_assignment_threshold: 0.30 # Minimum topic_share required to link a project to a topic in the project-topic bridge.
-  nmf_min_shared: 3                # Minimum shared evidence required when evaluating overlap/connection among NMF-derived topic terms or signals.
-  cat_tfidf_top_n: 20              # Number of top TF-IDF terms to surface for each analysis group/category summary.
+  nmf_min_shared: 3                # Minimum shared evidence required when evaluating overlap / connection among NMF-derived topic terms or signals.
+  cat_tfidf_top_n: 20              # Number of top TF-IDF terms to surface for each analysis group / category summary.
   review_group: null               # Optional single group value to restrict the run to; null means run all eligible groups.
   exclude_groups: []               # List of specific group values to skip entirely during analysis.
   synthesis_max_workers: 8         # Maximum number of parallel worker threads used for per-group synthesis tasks.
+  labeling_max_workers: 8          # Maximum number of parallel worker threads used for per-topic labeling tasks.
   bins: []                         # Optional analyst-defined date bins; each item should be a dict like {name, start, end} for add_bin-style bucketing.
+  filter_logic: and                # Filter-combination logic for analysis scoping; current implementation only allows 'and'.
+  filters: []                      # Declarative list of analysis-scope filter rules applied after the enriched corpus is loaded.
+
   group_descriptions:
-    project_category: "product categories teachers use to request classroom supplies"    # Prompt-friendly description used when group_by=project_category.
-    grade_band: "grade bands (PreK-2, 3-5, 6-8, 9-12) across DonorsChoose projects"      # Prompt-friendly description used when group_by=grade_band.
+    project_category: "product categories teachers use to request classroom supplies"   # Prompt-friendly description used when group_by=project_category.
+    grade_band: "grade bands (PreK-2, 3-5, 6-8, 9-12) across DonorsChoose projects"     # Prompt-friendly description used when group_by=grade_band.
     posted_year: "annual time periods showing how teacher language evolved"              # Prompt-friendly description used when group_by=posted_year.
     posted_year_quarter: "quarterly time periods showing how teacher language evolved"   # Prompt-friendly description used when group_by=posted_year_quarter.
     metro_type_at_time_of_posting: "school metro types across DonorsChoose projects"     # Prompt-friendly description used when group_by=metro_type_at_time_of_posting.
     school_is_low_income: "low-income vs non-low-income schools"                         # Prompt-friendly description used when group_by=school_is_low_income.
 
+  confidence:
+    support_volume_scale_projects: 50       # Project-count threshold at or above which support_volume_score is capped at 100.
+    support_breadth_scale_topics: 4         # Verified-topic-count threshold at or above which support_breadth_score is capped at 100.
+    bridge_strength_scale_topic_share: 0.60 # Mean topic-share threshold at or above which bridge_strength_score is capped at 100.
+
+    band_thresholds:
+      high: 80                # Minimum confidence_score required for the 'high' confidence band.
+      medium: 55              # Minimum confidence_score required for the 'medium' confidence band; below this is 'low'.
+
+    penalties:
+      low_support_penalty: 15                 # Penalty subtracted when supporting_project_count is below the configured low-support floor.
+      unclear_topic_penalty: 10               # Additional penalty applied when any verified topic has coherence_flag = 'unclear'.
+      low_verification_cleanliness_penalty: 10  # Penalty applied when too many claimed source topics fail verification.
+      low_bridge_strength_penalty: 10         # Penalty applied when mean verified-topic bridge strength is below the configured threshold.
+
+  tiering:
+    top:
+      min_confidence_score: 80          # Minimum confidence_score required for an insight to qualify as top-tier.
+      min_supporting_project_count: 50  # Minimum supporting project count required for an insight to qualify as top-tier.
+      min_verified_topic_count: 2       # Minimum verified source-topic count required for an insight to qualify as top-tier.
+
+    secondary:
+      min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as secondary-tier.
+      min_supporting_project_count: 20  # Minimum supporting project count required for an insight to qualify as secondary-tier.
+
+    tertiary:
+      min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
+      min_supporting_project_count: 10  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
+      min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
+      min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
+
 llm:
   top_terms_in_prompt: 10          # Number of top terms to include in each LLM prompt for labeling / synthesis context.
-  n_representative_snippets: 5     # Number of representative text snippets/examples to include in LLM prompts.
+  n_representative_snippets: 5     # Number of representative text snippets / examples to include in LLM prompts.
 
 models:
-  labeling:   gpt-4o-mini          # Model used for short topic/cluster labeling tasks.
-  synthesis:  gpt-4o               # Model used for longer-form synthesis and narrative generation.
-  gate:       gpt-4o-mini          # Model used for gating / validation decisions in the pipeline.
-  classify:   gpt-4o-mini          # Model used for classification steps.
-  discovery:  gpt-4o               # Model used for broader discovery / ideation steps.
+  labeling: gpt-5.4-mini           # Model used for short topic / cluster labeling tasks.
+  synthesis: gpt-5.4               # Model used for longer-form synthesis and narrative generation.
+  gate: gpt-5.4-mini               # Model used for gating / validation decisions in the pipeline.
+  classify: gpt-5.4-mini           # Model used for classification steps.
+  discovery: gpt-5.4               # Model used for broader discovery / ideation steps.
 
 output:
-  csv_max_ids_per_insight: 500     # Maximum number of project IDs to attach/store for a single insight row in CSV outputs.
+  csv_max_ids_per_insight: 500     # Maximum number of project IDs to attach / store for a single insight row in CSV outputs.

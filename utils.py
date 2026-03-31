@@ -1,9 +1,12 @@
+
 from pathlib import Path
 from datetime import datetime
+import hashlib
 import json
 import os
 import re
 import unicodedata
+from typing import Any
 
 import httpx
 import pandas as pd
@@ -39,13 +42,52 @@ def load_cfg(path=None):
         return yaml.safe_load(f)
 
 
+def write_json(path: Path, payload: Any) -> Path:
+    """Deterministic JSON writer used across manifests and structured outputs."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False, default=str)
+    return path
 
-def build_output_path(subdir: str, fname: str, groupby_field: str = None, run_date: str = None, root: Path = ROOT) -> Path:
-    """Resolve an OUTPUTS path and create parent directories.
 
-    Without groupby_field/run_date (notebooks 01, 01.5):
+def compute_md5(path: Path, chunk_size: int = 1024 * 1024) -> str | None:
+    """Return true content MD5 for a file, or None if the file does not exist."""
+    path = Path(path)
+    if not path.exists() or not path.is_file():
+        return None
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(chunk_size), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def artifact_meta(path: Path, label: str | None = None) -> dict[str, Any]:
+    """Build provenance metadata for one artifact path."""
+    path = Path(path)
+    exists = path.exists()
+    return {
+        "label": label or path.name,
+        "path": str(path),
+        "exists": exists,
+        "md5": compute_md5(path) if exists and path.is_file() else None,
+        "size_bytes": path.stat().st_size if exists else None,
+    }
+
+
+def build_output_path(
+    subdir: str,
+    fname: str,
+    groupby_field: str = None,
+    run_date: str = None,
+    root: Path = ROOT,
+) -> Path:
+    """Resolve a canonical OUTPUTS path and create parent directories.
+
+    Without groupby_field/run_date (notebooks 01, 02):
         OUTPUTS/{subdir}/{fname}
-    With groupby_field and run_date (notebook 02):
+    With groupby_field and run_date (legacy grouped outputs):
         OUTPUTS/{groupby_field}/{run_date}/{subdir}/{fname}
     """
     root = Path(root)
@@ -56,6 +98,20 @@ def build_output_path(subdir: str, fname: str, groupby_field: str = None, run_da
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
 
+
+def build_run_output_path(
+    subdir: str,
+    fname: str,
+    groupby_field: str,
+    run_date: str,
+    run_id: str,
+    root: Path = ROOT,
+) -> Path:
+    """Resolve a run-scoped OUTPUTS path for Notebook 03."""
+    root = Path(root)
+    p = root / "OUTPUTS" / "runs" / str(groupby_field) / str(run_date) / str(run_id) / subdir / fname
+    p.parent.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def outpath(subdir, fname, root=ROOT, groupby_field=None, run_date=None):
@@ -69,11 +125,133 @@ def outpath(subdir, fname, root=ROOT, groupby_field=None, run_date=None):
     )
 
 
-
 def get_run_date() -> str:
     """Return today's date as YYYY-MM-DD for output path nesting."""
     return datetime.now().strftime("%Y-%m-%d")
 
+
+def canonicalize_filter_spec(filter_logic: str, filters: list[dict[str, Any]] | None) -> dict[str, Any]:
+    """Return the canonical filter-spec object used for run hashing/logging."""
+    filters = filters or []
+    canonical_filters = []
+    for item in filters:
+        if not isinstance(item, dict):
+            raise ValueError(f"Filter entries must be dicts, got {type(item)}")
+        canonical_filters.append({k: item[k] for k in sorted(item.keys())})
+    return {
+        "schema_version": "v1",
+        "filter_logic": filter_logic,
+        "filters": canonical_filters,
+    }
+
+
+def get_filter_fields_key(filters: list[dict[str, Any]] | None) -> str:
+    """Concatenate referenced filter fields, or 'none' when no filters are supplied."""
+    filters = filters or []
+    fields = sorted({str(f.get("field", "")).strip() for f in filters if str(f.get("field", "")).strip()})
+    return "none" if not fields else "__".join(fields)
+
+
+def get_run_id(groupby_field: str, filter_spec: dict[str, Any] | None = None) -> str:
+    """Build a readable run id with scope hash."""
+    scope = json.dumps(filter_spec or {"filters": [], "filter_logic": "and"}, sort_keys=True, separators=(",", ":"))
+    scope_hash = hashlib.md5(scope.encode("utf-8")).hexdigest()[:8]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return f"{timestamp}_{groupby_field}_{scope_hash}"
+
+
+def validate_filter_spec(df: pd.DataFrame, filter_logic: str, filters: list[dict[str, Any]] | None) -> None:
+    """Validate analysis filter configuration against the dataframe schema."""
+    if filter_logic != "and":
+        raise ValueError("analysis.filter_logic must be exactly 'and'")
+    filters = filters or []
+    for rule in filters:
+        if "field" not in rule:
+            raise ValueError(f"Filter rule missing 'field': {rule}")
+        field = rule["field"]
+        if field not in df.columns:
+            raise ValueError(f"Filter field '{field}' not found in dataframe columns")
+        op = rule.get("op")
+        if op not in {"eq", "in", "range", "is_null", "not_null"}:
+            raise ValueError(f"Unsupported filter op '{op}' in rule: {rule}")
+        if op == "eq" and "value" not in rule:
+            raise ValueError(f"eq filter missing 'value': {rule}")
+        if op == "in":
+            values = rule.get("values")
+            if not isinstance(values, list) or not values:
+                raise ValueError(f"in filter requires non-empty 'values': {rule}")
+        if op == "range":
+            if "min" not in rule and "max" not in rule:
+                raise ValueError(f"range filter requires 'min' and/or 'max': {rule}")
+
+
+def _coerce_bound_for_series(series: pd.Series, value: Any) -> Any:
+    """Coerce range bounds for datetime columns only; forbid other implicit coercions."""
+    if pd.api.types.is_datetime64_any_dtype(series):
+        return pd.to_datetime(value)
+    return value
+
+
+def apply_filters(
+    df: pd.DataFrame,
+    filter_logic: str,
+    filters: list[dict[str, Any]] | None,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Apply validated analysis filters and return the filtered dataframe plus summary."""
+    filters = filters or []
+    validate_filter_spec(df, filter_logic, filters)
+    if not filters:
+        return df.copy(), {
+            "filter_logic": filter_logic,
+            "filters": [],
+            "n_rules": 0,
+            "input_row_count": int(len(df)),
+            "output_row_count": int(len(df)),
+            "dropped_row_count": 0,
+            "retained_pct": 100.0 if len(df) else 0.0,
+            "fields_checked": [],
+            "no_rows_after_filter": False,
+            "filter_fields_key": "none",
+        }
+
+    mask = pd.Series(True, index=df.index)
+    for rule in filters:
+        field = rule["field"]
+        op = rule["op"]
+        series = df[field]
+
+        if op == "eq":
+            rule_mask = series == rule["value"]
+        elif op == "in":
+            rule_mask = series.isin(rule["values"])
+        elif op == "range":
+            rule_mask = pd.Series(True, index=df.index)
+            if "min" in rule:
+                rule_mask &= series >= _coerce_bound_for_series(series, rule["min"])
+            if "max" in rule:
+                rule_mask &= series <= _coerce_bound_for_series(series, rule["max"])
+        elif op == "is_null":
+            rule_mask = series.isna()
+        elif op == "not_null":
+            rule_mask = series.notna()
+        else:
+            raise ValueError(f"Unsupported filter op '{op}'")
+        mask &= rule_mask.fillna(False)
+
+    out = df.loc[mask].copy()
+    retained_pct = round((len(out) / len(df) * 100), 2) if len(df) else 0.0
+    return out, {
+        "filter_logic": filter_logic,
+        "filters": filters,
+        "n_rules": len(filters),
+        "input_row_count": int(len(df)),
+        "output_row_count": int(len(out)),
+        "dropped_row_count": int(len(df) - len(out)),
+        "retained_pct": retained_pct,
+        "fields_checked": [rule["field"] for rule in filters],
+        "no_rows_after_filter": out.empty,
+        "filter_fields_key": get_filter_fields_key(filters),
+    }
 
 
 def ingest(path):
@@ -86,6 +264,45 @@ def ingest(path):
     )
     return df
 
+
+def ensure_warning_file(path: Path) -> Path:
+    """Create an empty JSONL warnings file if it does not already exist."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text("", encoding="utf-8")
+    return path
+
+
+def append_warning(
+    path: Path,
+    stage_name: str,
+    code: str,
+    message: str,
+    severity: str = "warning",
+    context: dict[str, Any] | None = None,
+) -> None:
+    """Append one structured warning record to a JSONL file."""
+    ensure_warning_file(path)
+    record = {
+        "timestamp": datetime.now().isoformat(),
+        "stage_name": stage_name,
+        "severity": severity,
+        "code": code,
+        "message": message,
+        "context": context or {},
+    }
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+
+
+def get_warning_count(path: Path) -> int:
+    """Count non-empty lines in a JSONL warnings file."""
+    path = Path(path)
+    if not path.exists():
+        return 0
+    with open(path, "r", encoding="utf-8") as f:
+        return sum(1 for line in f if line.strip())
 
 
 def get_llm_client() -> OpenAI:
@@ -101,6 +318,107 @@ def get_llm_client() -> OpenAI:
     return OpenAI(api_key=api_key, http_client=httpx.Client(verify=False))
 
 
+def start_stage_manifest(
+    stage_name: str,
+    notebook_file: str,
+    config_path: str = "params.yaml",
+    run_id: str | None = None,
+    group_by_field: str | None = None,
+    filter_fields_key: str | None = None,
+) -> dict[str, Any]:
+    """Create the common stage-manifest skeleton shared by all notebooks."""
+    config_meta = artifact_meta(ROOT / config_path, label="config")
+    started_at = datetime.now().isoformat()
+    return {
+        "schema_version": "v1",
+        "run_id": run_id,
+        "group_by_field": group_by_field,
+        "filter_fields_key": filter_fields_key,
+        "stage_name": stage_name,
+        "status": "running",
+        "started_at": started_at,
+        "completed_at": None,
+        "duration_seconds": None,
+        "notebook_file": notebook_file,
+        "config_path": config_path,
+        "config_md5": config_meta["md5"],
+        "input_artifacts": [],
+        "output_artifacts": [],
+        "row_counts": {},
+        "key_params": {},
+        "warnings_count": 0,
+        "warnings_path": None,
+    }
+
+
+def finalize_stage_manifest(
+    manifest: dict[str, Any],
+    output_path: Path,
+    status: str,
+    input_artifacts: list[dict[str, Any]] | None = None,
+    output_artifacts: list[dict[str, Any]] | None = None,
+    row_counts: dict[str, Any] | None = None,
+    key_params: dict[str, Any] | None = None,
+    warnings_path: Path | None = None,
+) -> dict[str, Any]:
+    """Finalize and persist a stage manifest."""
+    completed_at = datetime.now()
+    started_at = datetime.fromisoformat(manifest["started_at"])
+    manifest["status"] = status
+    manifest["completed_at"] = completed_at.isoformat()
+    manifest["duration_seconds"] = round((completed_at - started_at).total_seconds(), 2)
+    manifest["input_artifacts"] = input_artifacts or []
+    manifest["output_artifacts"] = output_artifacts or []
+    manifest["row_counts"] = row_counts or {}
+    manifest["key_params"] = key_params or {}
+    if warnings_path is not None:
+        manifest["warnings_path"] = str(warnings_path)
+        manifest["warnings_count"] = get_warning_count(warnings_path)
+    write_json(Path(output_path), manifest)
+    return manifest
+
+
+def build_pipeline_manifest(
+    output_path: Path,
+    run_id: str,
+    run_date: str,
+    group_by_field: str,
+    filter_spec_path: Path,
+    filter_summary_path: Path,
+    stage_manifest_paths: list[Path],
+    warnings_01_path: Path,
+    warnings_02_path: Path,
+    warnings_03_path: Path,
+    final_outputs: dict[str, str],
+    config_path: str = "params.yaml",
+    filter_fields_key: str | None = None,
+    status: str = "success",
+) -> dict[str, Any]:
+    """Persist the Notebook 03 pipeline manifest."""
+    config_meta = artifact_meta(ROOT / config_path, label="config")
+    payload = {
+        "schema_version": "v1",
+        "run_id": run_id,
+        "group_by_field": group_by_field,
+        "filter_fields_key": filter_fields_key,
+        "run_date": run_date,
+        "status": status,
+        "created_at": datetime.now().isoformat(),
+        "config_path": config_path,
+        "config_md5": config_meta["md5"],
+        "filter_spec_path": str(filter_spec_path),
+        "filter_summary_path": str(filter_summary_path),
+        "stage_manifests": [str(Path(p)) for p in stage_manifest_paths],
+        "warnings_01_path": str(warnings_01_path),
+        "warnings_02_path": str(warnings_02_path),
+        "warnings_03_path": str(warnings_03_path),
+        "warnings_files": [str(warnings_01_path), str(warnings_02_path), str(warnings_03_path)],
+        "final_outputs": final_outputs,
+    }
+    write_json(output_path, payload)
+    return payload
+
+
 # ── Token helpers ─────────────────────────────────────────────────────────────
 
 
@@ -109,11 +427,9 @@ def tokens_to_str(token_list):
     return " ".join(token_list) if token_list is not None else ""
 
 
-
 def flat_freq(df, col="tokens"):
     """Corpus-wide token frequency Series."""
     return pd.Series([t for ts in df[col] for t in ts]).value_counts()
-
 
 
 def token_doc_freq(df):
@@ -142,7 +458,6 @@ def make_vec(min_df, max_df, ngram_range):
     )
 
 
-
 def add_bin(df, bins):
     """Label each project with the first matching analyst-defined bin, else None."""
     df = df.copy()
@@ -153,11 +468,9 @@ def add_bin(df, bins):
     return df
 
 
-
 def group_key(keys, group_cols):
     """Normalise groupby key to dict for scalar or tuple keys."""
     return dict(zip(group_cols, keys if isinstance(keys, tuple) else [keys]))
-
 
 
 def build_project_topic_bridge(
@@ -165,26 +478,7 @@ def build_project_topic_bridge(
     groupby_field: str,
     threshold: float,
 ) -> pd.DataFrame:
-    """Build project-topic bridge using topic_share threshold.
-
-    topic_share = W[project, topic] / sum_k(W[project, k])
-    where the sum is over ALL topics for that project within its group.
-
-    topic_key format: '{groupby_field}={group_value}|topic={topic_id}'
-    This is the exact format expected by get_project_ids() in 02.
-
-    Args:
-        weights_df: FULL DataFrame with columns [groupby_field, topic_id,
-            project_id, weight, rank] covering every project-topic weight in
-            each retained group before any top-k, representative-project, or
-            analysis-only filtering.
-        groupby_field: name of the groupby column (e.g. 'project_category')
-        threshold: minimum topic_share for inclusion
-
-    Returns:
-        DataFrame with columns [topic_key, project_id, groupby_field, topic_id,
-                                weight, topic_share]
-    """
+    """Build project-topic bridge using topic_share threshold."""
     required_cols = {groupby_field, "topic_id", "project_id", "weight"}
     missing = required_cols - set(weights_df.columns)
     if missing:
@@ -224,25 +518,50 @@ def build_project_topic_bridge(
     ]
 
 
-
 def slugify_group_value(value: str, max_len: int = 64) -> str:
-    """Convert an arbitrary group value to a safe filename component.
-
-    Steps:
-    1. Normalize unicode to ASCII (NFKD + encode/decode)
-    2. Replace any non-alphanumeric character with underscore
-    3. Collapse repeated underscores
-    4. Strip leading/trailing underscores
-    5. Truncate to max_len (default 64) to avoid filesystem limits
-
-    Returns 'unknown' for empty or fully non-ASCII inputs.
-    """
+    """Convert an arbitrary group value to a safe filename component."""
     value = str(value)
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     value = re.sub(r"[^\w]", "_", value)
     value = re.sub(r"_+", "_", value)
     value = value.strip("_")
     return value[:max_len] if value else "unknown"
+
+
+def load_essay_snippet_lookup(
+    project_ids: list[Any],
+    data_dir: Path | None = None,
+    max_chars: int = 300,
+) -> dict[Any, str]:
+    """Lazy-load essay text snippets for a project_id set from DATA/project_essay*.csv."""
+    data_dir = Path(data_dir) if data_dir is not None else ROOT / "DATA"
+    needed = set(project_ids)
+    if not needed:
+        return {}
+    lookup: dict[Any, str] = {}
+    essay_files = sorted(data_dir.glob("project_essay*.csv"))
+    text_cols = ["essay", "essay_text", "full_text", "project_essay", "text"]
+    for fpath in essay_files:
+        try:
+            cols = pd.read_csv(fpath, nrows=0).columns.tolist()
+        except Exception:
+            continue
+        available_text_col = next((c for c in text_cols if c in cols), None)
+        if not available_text_col or "project_id" not in cols:
+            continue
+        usecols = ["project_id", available_text_col]
+        for chunk in pd.read_csv(fpath, usecols=usecols, chunksize=200000):
+            sub = chunk[chunk["project_id"].isin(needed - set(lookup.keys()))]
+            if sub.empty:
+                continue
+            for _, row in sub.iterrows():
+                text = str(row.get(available_text_col, "") or "")
+                text = re.sub(r"\s+", " ", text).strip()
+                if text:
+                    lookup[row["project_id"]] = text[:max_chars]
+            if len(lookup) == len(needed):
+                return lookup
+    return lookup
 
 
 # ── Quality report ────────────────────────────────────────────────────────────
@@ -299,19 +618,33 @@ def quality_report(df, label, doc_freq=None, matrices=None, save_path=None):
     print(f"  Stopwords: {'PASS' if not stops else 'FAIL — ' + str(stops)}")
     print(f"{'=' * 55}\n")
     if save_path:
-        with open(save_path, "w", encoding="utf-8") as f:
-            json.dump(stats, f, indent=2, default=str)
+        write_json(save_path, stats)
     return stats
 
 
 __all__ = [
     "ROOT",
     "load_cfg",
+    "write_json",
+    "compute_md5",
+    "artifact_meta",
     "build_output_path",
+    "build_run_output_path",
     "outpath",
     "get_run_date",
+    "canonicalize_filter_spec",
+    "get_filter_fields_key",
+    "get_run_id",
+    "validate_filter_spec",
+    "apply_filters",
     "ingest",
+    "ensure_warning_file",
+    "append_warning",
+    "get_warning_count",
     "get_llm_client",
+    "start_stage_manifest",
+    "finalize_stage_manifest",
+    "build_pipeline_manifest",
     "tokens_to_str",
     "flat_freq",
     "token_doc_freq",
@@ -320,5 +653,6 @@ __all__ = [
     "group_key",
     "build_project_topic_bridge",
     "slugify_group_value",
+    "load_essay_snippet_lookup",
     "quality_report",
 ]
