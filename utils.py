@@ -458,6 +458,68 @@ def make_vec(min_df, max_df, ngram_range):
     )
 
 
+def get_effective_support_volume_scale(
+    df: pd.DataFrame,
+    groupby_field: str,
+    confidence_cfg: dict[str, Any],
+) -> dict[str, float | int]:
+    """Derive the runtime denominator for support-volume scoring.
+
+    Uses:
+        effective_scale = round(support_volume_scale_median_size * median_group_size)
+
+    Returns a dict with:
+        - scale_multiplier
+        - median_group_size
+        - effective_scale
+
+    Guarantees effective_scale >= 1 to avoid divide-by-zero.
+    """
+    if "support_volume_scale_median_size" not in confidence_cfg:
+        raise KeyError(
+            "Missing analysis.confidence.support_volume_scale_median_size in params.yaml"
+        )
+
+    try:
+        scale_multiplier = float(confidence_cfg["support_volume_scale_median_size"])
+    except Exception as e:
+        raise ValueError(
+            "analysis.confidence.support_volume_scale_median_size must be numeric"
+        ) from e
+
+    if pd.isna(scale_multiplier) or scale_multiplier <= 0:
+        raise ValueError(
+            "analysis.confidence.support_volume_scale_median_size must be > 0"
+        )
+
+    required_cols = {groupby_field, "project_id"}
+    missing = required_cols - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"Cannot derive support-volume scale; df missing required columns: {sorted(missing)}"
+        )
+
+    group_project_counts = (
+        df[[groupby_field, "project_id"]]
+        .dropna(subset=["project_id"])
+        .drop_duplicates()
+        .groupby(groupby_field, dropna=False)["project_id"]
+        .nunique()
+    )
+
+    median_group_size = (
+        float(group_project_counts.median()) if not group_project_counts.empty else 0.0
+    )
+
+    effective_scale = max(1, int(round(scale_multiplier * median_group_size)))
+
+    return {
+        "scale_multiplier": scale_multiplier,
+        "median_group_size": median_group_size,
+        "effective_scale": effective_scale,
+    }
+
+
 def add_bin(df, bins):
     """Label each project with the first matching analyst-defined bin, else None."""
     df = df.copy()
@@ -655,4 +717,5 @@ __all__ = [
     "slugify_group_value",
     "load_essay_snippet_lookup",
     "quality_report",
+    "get_effective_support_volume_scale",
 ]

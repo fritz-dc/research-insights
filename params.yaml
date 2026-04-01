@@ -14,15 +14,15 @@ ngrams:
   max_n: 3                   # Maximum n-gram length to generate upstream (for example: 3 = allow unigrams, bigrams, and trigrams).
 
 tfidf:
-  min_df: 7                  # Minimum document frequency passed to TfidfVectorizer; terms appearing in fewer than this many documents are ignored.
-  max_df: 0.60               # Maximum document-frequency share passed to TfidfVectorizer; terms in more than this fraction of documents are ignored.
-  ngram_range: [1, 2]        # Inclusive n-gram range for TF-IDF features: [1, 2] means unigrams and bigrams.
+  min_df: 8                    # Minimum document frequency threshold for terms retained in TF-IDF.
+  max_df: 0.45                 # Maximum document-frequency share allowed before a term is considered too common.
+  ngram_range: [1, 2]          # Range of n-grams used for TF-IDF feature construction.
 
 nmf:
-  n_components: 12           # Number of NMF topics/components to fit per analysis group.
-  top_words: 12              # Number of highest-weight terms to surface when labeling or reviewing each NMF topic.
-  random_seed: 42            # Random seed for reproducible NMF initialization and outputs.
-  max_iter: 400              # Maximum number of iterations allowed for NMF optimization before stopping.
+  n_components: 20             # Base number of NMF topics/components per group.
+  top_words: 12                # Number of highest-weight terms surfaced per topic.
+  random_seed: 42              # Random seed for reproducible NMF initialization.
+  max_iter: 400                # Maximum number of iterations for NMF optimization.
 
 enrichment:
   rare_doc_freq_ceiling: 1000        # Maximum document frequency for a token/phrase to count as "rare" during enrichment candidate discovery.
@@ -37,7 +37,7 @@ enrichment:
   force_reclassify: true                # Whether to re-run enrichment classification even when cached framing / classification outputs already exist.
 
 analysis:
-  group_by: project_category       # Single column used to split the corpus into analysis groups; downstream code expects a scalar field name, not a list.
+  group_by: miami_geo_group        # Single column used to split the corpus into analysis groups; downstream code expects a scalar field name, not a list.
   min_group_projects: 50           # Minimum number of projects required for a group to be analyzed.
   min_coverage: 6                  # Minimum coverage threshold a topic / signal must meet within a group to be retained in analysis outputs.
   topic_assignment_threshold: 0.30 # Minimum topic_share required to link a project to a topic in the project-topic bridge.
@@ -49,7 +49,19 @@ analysis:
   labeling_max_workers: 8          # Maximum number of parallel worker threads used for per-topic labeling tasks.
   bins: []                         # Optional analyst-defined date bins; each item should be a dict like {name, start, end} for add_bin-style bucketing.
   filter_logic: and                # Filter-combination logic for analysis scoping; current implementation only allows 'and'.
-  filters: []                      # Declarative list of analysis-scope filter rules applied after the enriched corpus is loaded.
+  filters:
+    - field: miami_geo_group
+      op: in
+      values:
+        - Los Angeles, CA
+        - Houston, TX
+        - Las Vegas, NV
+        - Miami, FL
+        - San Diego, CA
+        - Broward County, FL
+        - Orlando, FL
+        - Tampa, FL
+  #filters: []                      # Declarative list of analysis-scope filter rules applied after the enriched corpus is loaded.
 
   group_descriptions:
     project_category: "product categories teachers use to request classroom supplies"   # Prompt-friendly description used when group_by=project_category.
@@ -60,7 +72,7 @@ analysis:
     school_is_low_income: "low-income vs non-low-income schools"                         # Prompt-friendly description used when group_by=school_is_low_income.
 
   confidence:
-    support_volume_scale_projects: 50       # Project-count threshold at or above which support_volume_score is capped at 100.
+    support_volume_scale_median_size: 1.0         # Share of the median analysis-group project count at which support_volume_score reaches 100.
     support_breadth_scale_topics: 4         # Verified-topic-count threshold at or above which support_breadth_score is capped at 100.
     bridge_strength_scale_topic_share: 0.60 # Mean topic-share threshold at or above which bridge_strength_score is capped at 100.
 
@@ -68,25 +80,23 @@ analysis:
       high: 80                # Minimum confidence_score required for the 'high' confidence band.
       medium: 55              # Minimum confidence_score required for the 'medium' confidence band; below this is 'low'.
 
-    penalties:
-      low_support_penalty: 15                 # Penalty subtracted when supporting_project_count is below the configured low-support floor.
-      unclear_topic_penalty: 10               # Additional penalty applied when any verified topic has coherence_flag = 'unclear'.
-      low_verification_cleanliness_penalty: 10  # Penalty applied when too many claimed source topics fail verification.
-      low_bridge_strength_penalty: 10         # Penalty applied when mean verified-topic bridge strength is below the configured threshold.
-
   tiering:
     top:
       min_confidence_score: 80          # Minimum confidence_score required for an insight to qualify as top-tier.
-      min_supporting_project_count: 50  # Minimum supporting project count required for an insight to qualify as top-tier.
+      min_supporting_project_count: 500  # Minimum supporting project count required for an insight to qualify as top-tier.
+      min_topic_quality_score: 80       # Minimum topic_quality_score required for an insight to qualify as top-tier.
+      min_bridge_strength_score: 80     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
       min_verified_topic_count: 2       # Minimum verified source-topic count required for an insight to qualify as top-tier.
 
     secondary:
       min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as secondary-tier.
-      min_supporting_project_count: 20  # Minimum supporting project count required for an insight to qualify as secondary-tier.
+      min_supporting_project_count: 200  # Minimum supporting project count required for an insight to qualify as secondary-tier.
+      min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
+      min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
 
     tertiary:
       min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
-      min_supporting_project_count: 10  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
+      min_supporting_project_count: 100  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
       min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
       min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
 
@@ -95,7 +105,7 @@ llm:
   n_representative_snippets: 5     # Number of representative text snippets / examples to include in LLM prompts.
 
 models:
-  labeling: gpt-5.4-mini           # Model used for short topic / cluster labeling tasks.
+  labeling: gpt-5.4-nano           # Model used for short topic / cluster labeling tasks.
   synthesis: gpt-5.4               # Model used for longer-form synthesis and narrative generation.
   gate: gpt-5.4-mini               # Model used for gating / validation decisions in the pipeline.
   classify: gpt-5.4-mini           # Model used for classification steps.
