@@ -72,8 +72,8 @@ analysis:
     school_is_low_income: "low-income vs non-low-income schools"                         # Prompt-friendly description used when group_by=school_is_low_income.
 
   confidence:
-    support_volume_scale_median_size: 1.0         # Share of the median analysis-group project count at which support_volume_score reaches 100.
-    support_breadth_scale_topics: 4         # Verified-topic-count threshold at or above which support_breadth_score is capped at 100.
+    support_volume_scale_median_size: 0.25         # Share of the median analysis-group project count at which support_volume_score reaches 100.
+    support_breadth_scale_topics: 3         # Verified-topic-count threshold at or above which support_breadth_score is capped at 100.
     bridge_strength_scale_topic_share: 0.60 # Mean topic-share threshold at or above which bridge_strength_score is capped at 100.
 
     band_thresholds:
@@ -82,23 +82,23 @@ analysis:
 
   tiering:
     top:
-      min_confidence_score: 80          # Minimum confidence_score required for an insight to qualify as top-tier.
-      min_supporting_project_count: 500  # Minimum supporting project count required for an insight to qualify as top-tier.
-      min_topic_quality_score: 80       # Minimum topic_quality_score required for an insight to qualify as top-tier.
-      min_bridge_strength_score: 80     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
+      min_confidence_score: 70          # Minimum confidence_score required for an insight to qualify as top-tier.
+      min_supporting_project_count: 100  # Minimum supporting project count required for an insight to qualify as top-tier.
+      min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as top-tier.
+      min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
       min_verified_topic_count: 2       # Minimum verified source-topic count required for an insight to qualify as top-tier.
 
     secondary:
-      min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as secondary-tier.
-      min_supporting_project_count: 200  # Minimum supporting project count required for an insight to qualify as secondary-tier.
-      min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
-      min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
+      min_confidence_score: 50          # Minimum confidence_score required for an insight to qualify as secondary-tier.
+      min_supporting_project_count: 50  # Minimum supporting project count required for an insight to qualify as secondary-tier.
+      min_topic_quality_score: 50       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
+      min_bridge_strength_score: 50     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
 
     tertiary:
-      min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
-      min_supporting_project_count: 100  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
-      min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
-      min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
+      min_confidence_score: 50          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
+      min_supporting_project_count: 20  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
+      min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
+      min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
 
 llm:
   top_terms_in_prompt: 10          # Number of top terms to include in each LLM prompt for labeling / synthesis context.
