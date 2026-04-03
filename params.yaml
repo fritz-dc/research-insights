@@ -85,23 +85,23 @@ analysis:
 
   tiering:
     top:
-      min_confidence_score: 70          # Minimum confidence_score required for an insight to qualify as top-tier.
-      min_supporting_project_count: 100  # Minimum supporting project count required for an insight to qualify as top-tier.
+      min_confidence_score: 80          # Minimum confidence_score required for an insight to qualify as top-tier.
+      min_supporting_project_count: 100 # Minimum supporting project count required for an insight to qualify as top-tier.
       min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as top-tier.
-      min_bridge_strength_score: 80     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
-      min_verified_topic_count: 4       # Minimum verified source-topic count required for an insight to qualify as top-tier.
+      min_bridge_strength_score: 75     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
+      min_verified_topic_count: 3       # Minimum verified source-topic count required for an insight to qualify as top-tier.
 
     secondary:
-      min_confidence_score: 50          # Minimum confidence_score required for an insight to qualify as secondary-tier.
-      min_supporting_project_count: 50  # Minimum supporting project count required for an insight to qualify as secondary-tier.
-      min_topic_quality_score: 50       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
+      min_confidence_score: 65          # Minimum confidence_score required for an insight to qualify as secondary-tier.
+      min_supporting_project_count: 100 # Minimum supporting project count required for an insight to qualify as secondary-tier.
+      min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
       min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
 
     tertiary:
-      min_confidence_score: 50          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
+      min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
       min_supporting_project_count: 20  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
-      min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
-      min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
+      min_topic_quality_score: 55       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
+      min_bridge_strength_score: 55     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
 
 llm:
   top_terms_in_prompt: 10          # Number of top terms to include in each LLM prompt for labeling / synthesis context.
