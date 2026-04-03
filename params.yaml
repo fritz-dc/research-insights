@@ -61,6 +61,9 @@ analysis:
         - Broward County, FL
         - Orlando, FL
         - Tampa, FL
+    - field: funded_date
+      op: range
+      min: "2024-07-01"
   #filters: []                      # Declarative list of analysis-scope filter rules applied after the enriched corpus is loaded.
 
   group_descriptions:
@@ -85,20 +88,20 @@ analysis:
       min_confidence_score: 70          # Minimum confidence_score required for an insight to qualify as top-tier.
       min_supporting_project_count: 100  # Minimum supporting project count required for an insight to qualify as top-tier.
       min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as top-tier.
-      min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
-      min_verified_topic_count: 2       # Minimum verified source-topic count required for an insight to qualify as top-tier.
+      min_bridge_strength_score: 80     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
+      min_verified_topic_count: 4       # Minimum verified source-topic count required for an insight to qualify as top-tier.
 
     secondary:
       min_confidence_score: 50          # Minimum confidence_score required for an insight to qualify as secondary-tier.
       min_supporting_project_count: 50  # Minimum supporting project count required for an insight to qualify as secondary-tier.
       min_topic_quality_score: 50       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
-      min_bridge_strength_score: 50     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
+      min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
 
     tertiary:
       min_confidence_score: 50          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
       min_supporting_project_count: 20  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
       min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
-      min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
+      min_bridge_strength_score: 70     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
 
 llm:
   top_terms_in_prompt: 10          # Number of top terms to include in each LLM prompt for labeling / synthesis context.
@@ -106,10 +109,21 @@ llm:
 
 models:
   labeling: gpt-5.4-nano           # Model used for short topic / cluster labeling tasks.
-  synthesis: gpt-5.4               # Model used for longer-form synthesis and narrative generation.
+  dedup: gpt-5.4-nano              # Model used for deduplicating similar insights.
   gate: gpt-5.4-mini               # Model used for gating / validation decisions in the pipeline.
   classify: gpt-5.4-mini           # Model used for classification steps.
+  verify: gpt-5.4-mini             # Model used for determining if topics match parent insight.
+  synthesis: gpt-5.4               # Model used for longer-form synthesis and narrative generation.
   discovery: gpt-5.4               # Model used for broader discovery / ideation steps.
 
 output:
   csv_max_ids_per_insight: 500     # Maximum number of project IDs to attach / store for a single insight row in CSV outputs.
+  report_title: "Teacher Language Trends"        # Business-ready title shown at the top of the DOCX. Update this before each run.
+  report_key_tiers: ["top", "secondary"]         # Tier values routed to the Key Insights section. Must match lowercase values produced by assign_insight_tier().
+  report_other_tiers: ["tertiary"]               # Tier values routed to the Other Insights section. Must match lowercase values produced by assign_insight_tier().
+  report_key_section_label: "Key Insights"       # H1 heading for the top/secondary tier section.
+  report_other_section_label: "Other Insights"   # H1 heading for the tertiary tier section.
+  report_cross_category_label: "Cross-Category Similarities"   # H2 heading for insights drawn from key_insights (cross-group patterns).
+  report_group_specific_label: "Group-Specific Findings"       # H2 heading for insights drawn from by_group (per-group patterns).
+  report_include_meta_line: true                 # Whether to render the italic tier/confidence/count line above each insight body.
+  report_include_signal_summary: true            # Whether to render the project count and insight count summary line below the title.
