@@ -37,7 +37,7 @@ enrichment:
   force_reclassify: true                # Whether to re-run enrichment classification even when cached framing / classification outputs already exist.
 
 analysis:
-  group_by: miami_geo_group        # Single column used to split the corpus into analysis groups; downstream code expects a scalar field name, not a list.
+  group_by: project_category        # Single column used to split the corpus into analysis groups; downstream code expects a scalar field name, not a list.
   min_group_projects: 50           # Minimum number of projects required for a group to be analyzed.
   min_coverage: 6                  # Minimum coverage threshold a topic / signal must meet within a group to be retained in analysis outputs.
   topic_assignment_threshold: 0.30 # Minimum topic_share required to link a project to a topic in the project-topic bridge.
@@ -50,20 +50,9 @@ analysis:
   bins: []                         # Optional analyst-defined date bins; each item should be a dict like {name, start, end} for add_bin-style bucketing.
   filter_logic: and                # Filter-combination logic for analysis scoping; current implementation only allows 'and'.
   filters:
-    - field: miami_geo_group
-      op: in
-      values:
-        - Los Angeles, CA
-        - Houston, TX
-        - Las Vegas, NV
-        - Miami, FL
-        - San Diego, CA
-        - Broward County, FL
-        - Orlando, FL
-        - Tampa, FL
     - field: funded_date
       op: range
-      min: "2024-07-01"
+      min: "2025-07-01"
   #filters: []                      # Declarative list of analysis-scope filter rules applied after the enriched corpus is loaded.
 
   group_descriptions:
@@ -74,56 +63,64 @@ analysis:
     metro_type_at_time_of_posting: "school metro types across DonorsChoose projects"     # Prompt-friendly description used when group_by=metro_type_at_time_of_posting.
     school_is_low_income: "low-income vs non-low-income schools"                         # Prompt-friendly description used when group_by=school_is_low_income.
 
-  confidence:
-    support_volume_scale_median_size: 0.25         # Share of the median analysis-group project count at which support_volume_score reaches 100.
-    support_breadth_scale_topics: 3         # Verified-topic-count threshold at or above which support_breadth_score is capped at 100.
-    bridge_strength_scale_topic_share: 0.60 # Mean topic-share threshold at or above which bridge_strength_score is capped at 100.
+  verification:
+    by_group_min_source_topics: 3  # Verify by-group insights only when they cite at least this many source topics.
 
-    band_thresholds:
-      high: 80                # Minimum confidence_score required for the 'high' confidence band.
-      medium: 55              # Minimum confidence_score required for the 'medium' confidence band; below this is 'low'.
+  slice_rules:
+    min_group_projects: 35  # Minimum projects required for a group to be eligible for category TF-IDF and NMF.
+    min_retained_vocab: 60  # Minimum retained TF-IDF vocabulary required for an NMF slice to run.
+    min_tfidf_nnz: 300  # Minimum non-zero TF-IDF entries required for an NMF slice to run.
+    small_slice_cutoff: 125  # If median projects per group falls below this, use the smaller topic cap below.
+    small_slice_topic_cap: 8  # Maximum NMF topics when small-slice mode is active.
+    cross_min_insights: 8  # Default minimum number of cross-group insights requested from synthesis.
+    cross_max_insights: 16  # Hard maximum number of cross-group insights requested from synthesis.
+    per_group_min_insights: 2  # Default minimum number of per-group insights requested from synthesis.
+    per_group_max_insights: 4  # Hard maximum number of per-group insights requested from synthesis.
 
-  tiering:
-    top:
-      min_confidence_score: 80          # Minimum confidence_score required for an insight to qualify as top-tier.
-      min_supporting_project_count: 100 # Minimum supporting project count required for an insight to qualify as top-tier.
-      min_topic_quality_score: 70       # Minimum topic_quality_score required for an insight to qualify as top-tier.
-      min_bridge_strength_score: 75     # Minimum bridge_strength_score required for an insight to qualify as top-tier.
-      min_verified_topic_count: 3       # Minimum verified source-topic count required for an insight to qualify as top-tier.
+  packaging:
+    min_verified_topic_count: 1  # Minimum verified source-topic count required for an insight to be accepted into report packaging.
+    min_supporting_project_count: 20  # Minimum supporting-project count required for an insight to be accepted into report packaging.
+    min_mean_topic_share: 0.35  # Minimum mean topic_share across verified topics required for an insight to be accepted into report packaging.
+    main_min_verification_ratio: 0.75  # Minimum verified/claimed topic ratio required for an insight to be eligible for the main section.
+    main_cross_limit: 5  # Maximum number of cross-category insights allowed in the main report section.
 
-    secondary:
-      min_confidence_score: 65          # Minimum confidence_score required for an insight to qualify as secondary-tier.
-      min_supporting_project_count: 100 # Minimum supporting project count required for an insight to qualify as secondary-tier.
-      min_topic_quality_score: 60       # Minimum topic_quality_score required for an insight to qualify as secondary-tier.
-      min_bridge_strength_score: 60     # Minimum bridge_strength_score required for an insight to qualify as secondary-tier.
-
-    tertiary:
-      min_confidence_score: 55          # Minimum confidence_score required for an insight to qualify as tertiary-tier.
-      min_supporting_project_count: 20  # Minimum supporting project count required for an insight to qualify as tertiary-tier.
-      min_topic_quality_score: 55       # Minimum topic_quality_score required for an insight to qualify as tertiary-tier.
-      min_bridge_strength_score: 55     # Minimum bridge_strength_score required for an insight to qualify as tertiary-tier.
+  dedupe:
+    topic_overlap_high: 0.80  # Drop immediately as a duplicate when verified-topic overlap is at or above this level.
+    topic_overlap_min: 0.60  # Minimum topic overlap required before title/text similarity can trigger a duplicate drop.
+    title_overlap_min: 0.60  # Minimum title-token overlap required for deterministic duplicate dropping when topic overlap is moderate.
+    text_overlap_min: 0.55  # Minimum combined title+body token overlap required for deterministic duplicate dropping when topic overlap is moderate.
 
 llm:
   top_terms_in_prompt: 10          # Number of top terms to include in each LLM prompt for labeling / synthesis context.
   n_representative_snippets: 5     # Number of representative text snippets / examples to include in LLM prompts.
+  synthesis_top_terms_count: 6
 
 models:
   labeling: gpt-5.4-nano           # Model used for short topic / cluster labeling tasks.
   dedup: gpt-5.4-nano              # Model used for deduplicating similar insights.
+  verify: gpt-5.4-nano             # Model used for determining if topics match parent insight.
   gate: gpt-5.4-mini               # Model used for gating / validation decisions in the pipeline.
   classify: gpt-5.4-mini           # Model used for classification steps.
-  verify: gpt-5.4-mini             # Model used for determining if topics match parent insight.
   synthesis: gpt-5.4               # Model used for longer-form synthesis and narrative generation.
   discovery: gpt-5.4               # Model used for broader discovery / ideation steps.
 
 output:
-  csv_max_ids_per_insight: 500     # Maximum number of project IDs to attach / store for a single insight row in CSV outputs.
-  report_title: "Teacher Language Trends"        # Business-ready title shown at the top of the DOCX. Update this before each run.
-  report_key_tiers: ["top", "secondary"]         # Tier values routed to the Key Insights section. Must match lowercase values produced by assign_insight_tier().
-  report_other_tiers: ["tertiary"]               # Tier values routed to the Other Insights section. Must match lowercase values produced by assign_insight_tier().
-  report_key_section_label: "Key Insights"       # H1 heading for the top/secondary tier section.
-  report_other_section_label: "Other Insights"   # H1 heading for the tertiary tier section.
-  report_cross_category_label: "Cross-Category Similarities"   # H2 heading for insights drawn from key_insights (cross-group patterns).
-  report_group_specific_label: "Group-Specific Findings"       # H2 heading for insights drawn from by_group (per-group patterns).
-  report_include_meta_line: true                 # Whether to render the italic tier/confidence/count line above each insight body.
-  report_include_signal_summary: true            # Whether to render the project count and insight count summary line below the title.
+  csv_max_ids_per_insight: 500  # Maximum number of project IDs to attach / store for a single insight row in CSV outputs.
+  looker_base_url: "https://donorschoose.looker.com/explore/main/project"
+  looker_filter_field: "project.projectid"
+  looker_fields:
+    - "project.projectid"
+    - "project_essays.essay"
+  looker_limit: 500
+  looker_id_limit: 100
+  report_title: "Trend Tracker: <lorem ipsum>"  # Business-ready title shown at the top of the DOCX. Update this before each run.
+  report_main_section_label: "Main Insights"  # H1 heading for the main packaged section.
+  report_appendix_section_label: "Appendix"  # H1 heading for the appendix packaged section.
+  report_main_cross_label: "Cross-Category Similarities"  # H2 heading for main-section cross-category insights.
+  report_main_by_group_label: "Group-Specific Findings"  # H2 heading for main-section by-group insights.
+  report_appendix_cross_label: "Additional Cross-Category Insights"  # H2 heading for appendix cross-category insights.
+  report_appendix_by_group_label: "Additional Group-Specific Findings"  # H2 heading for appendix by-group insights.
+  report_include_meta_line: true  # Whether to render the italic support/count line above each insight body.
+  report_include_signal_summary: true  # Whether to render the project count and insight count summary line below the title.
+  report_include_looker_link: true
+  report_looker_link_text: "Project essays for this insight"

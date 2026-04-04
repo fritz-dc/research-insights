@@ -1,4 +1,3 @@
-
 from copy import deepcopy
 from pathlib import Path
 from datetime import datetime
@@ -9,12 +8,16 @@ import re
 import time as _time
 import unicodedata
 from typing import Any, Callable
+from urllib.parse import urlencode
 
 import httpx
 import numpy as np
 import openai as _openai
 import pandas as pd
 import yaml
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.shared import Pt, RGBColor
 from openai import OpenAI
 from sklearn.decomposition import NMF
@@ -464,68 +467,6 @@ def make_vec(min_df, max_df, ngram_range):
     )
 
 
-def get_effective_support_volume_scale(
-    df: pd.DataFrame,
-    groupby_field: str,
-    confidence_cfg: dict[str, Any],
-) -> dict[str, float | int]:
-    """Derive the runtime denominator for support-volume scoring.
-
-    Uses:
-        effective_scale = round(support_volume_scale_median_size * median_group_size)
-
-    Returns a dict with:
-        - scale_multiplier
-        - median_group_size
-        - effective_scale
-
-    Guarantees effective_scale >= 1 to avoid divide-by-zero.
-    """
-    if "support_volume_scale_median_size" not in confidence_cfg:
-        raise KeyError(
-            "Missing analysis.confidence.support_volume_scale_median_size in params.yaml"
-        )
-
-    try:
-        scale_multiplier = float(confidence_cfg["support_volume_scale_median_size"])
-    except Exception as e:
-        raise ValueError(
-            "analysis.confidence.support_volume_scale_median_size must be numeric"
-        ) from e
-
-    if pd.isna(scale_multiplier) or scale_multiplier <= 0:
-        raise ValueError(
-            "analysis.confidence.support_volume_scale_median_size must be > 0"
-        )
-
-    required_cols = {groupby_field, "project_id"}
-    missing = required_cols - set(df.columns)
-    if missing:
-        raise ValueError(
-            f"Cannot derive support-volume scale; df missing required columns: {sorted(missing)}"
-        )
-
-    group_project_counts = (
-        df[[groupby_field, "project_id"]]
-        .dropna(subset=["project_id"])
-        .drop_duplicates()
-        .groupby(groupby_field, dropna=False)["project_id"]
-        .nunique()
-    )
-
-    median_group_size = (
-        float(group_project_counts.median()) if not group_project_counts.empty else 0.0
-    )
-
-    effective_scale = max(1, int(round(scale_multiplier * median_group_size)))
-
-    return {
-        "scale_multiplier": scale_multiplier,
-        "median_group_size": median_group_size,
-        "effective_scale": effective_scale,
-    }
-
-
 def add_bin(df, bins):
     """Label each project with the first matching analyst-defined bin, else None."""
     df = df.copy()
@@ -632,6 +573,25 @@ def load_essay_snippet_lookup(
     return lookup
 
 
+def project_insight_for_saved_candidates(insight: dict) -> dict:
+    source_topics_out = []
+    for src in insight.get("source_topics", []):
+        if isinstance(src, dict):
+            group = str(src.get("group", "")).strip()
+            topic_id = int(float(src.get("topic_id", -1)))
+            if group and topic_id >= 0:
+                source_topics_out.append(f"{group}|{topic_id}")
+        elif isinstance(src, str) and "|" in src:
+            source_topics_out.append(src.strip())
+
+    return {
+        "title": str(insight.get("title", "")).strip(),
+        "what_seeing": str(insight.get("what_seeing", "")).strip(),
+        "why_easy_to_miss": str(insight.get("why_easy_to_miss", "")).strip(),
+        "source_topics": source_topics_out,
+    }
+
+
 def _norm_text(s):
     s = str(s).lower()
     s = re.sub(r"[^a-z0-9\s]+", " ", s)
@@ -664,12 +624,6 @@ def _topic_list(val):
         pass
     return [x.strip() for x in s.split(",") if x.strip()]
 
-def _stronger_key(row):
-    return (
-        float(row.get("confidence_score", 0)),
-        int(row.get("verified_topic_count", 0)),
-        int(row.get("supporting_project_count", 0)),
-    )
 
 def _pair_kind(a, b):
     a_is_key = a["section"] == "key_insights"
@@ -839,7 +793,7 @@ def choose_n_components(
     vocab_cap = max(4, retained_vocab // 8)
     topic_cap = (
         slice_rules["small_slice_topic_cap"]
-        if slice_rules["small_slice_mode"]
+        if slice_rules.get("small_slice_mode", False)
         else base_n_components
     )
     return max(4, min(base_n_components, doc_cap, vocab_cap, topic_cap))
@@ -1107,18 +1061,54 @@ def build_topic_lines(
     df: pd.DataFrame,
     groupby_field: str,
     group: Any | None = None,
+    top_terms_count: int = 4,
 ) -> str:
     """Render labeled topics into the line-oriented prompt format used in Notebook 03."""
     if group is not None:
         df = df[df[groupby_field] == group]
 
-    return "\n".join(
-        f"  {row[groupby_field]} | topic {row.topic_id} | "
-        f"label: {clean_label(row.proposed_label)} | "
-        f"coherence: {row.coherence_flag} | "
-        f"description: {clean_label(row.description)}"
-        for _, row in df.iterrows()
-    )
+    def _format_top_terms(val: Any, n: int) -> str:
+        if n <= 0:
+            return ""
+
+        if isinstance(val, list):
+            terms = [str(x).strip() for x in val if str(x).strip()]
+        elif pd.isna(val):
+            terms = []
+        else:
+            s = str(val).strip()
+            if not s:
+                terms = []
+            else:
+                try:
+                    parsed = json.loads(s)
+                    if isinstance(parsed, list):
+                        terms = [str(x).strip() for x in parsed if str(x).strip()]
+                    else:
+                        terms = [x.strip() for x in s.split(",") if x.strip()]
+                except Exception:
+                    terms = [x.strip() for x in s.split(",") if x.strip()]
+
+        terms = [clean_label(t) for t in terms[:n]]
+        return ", ".join([t for t in terms if t])
+
+    lines = []
+    for _, row in df.iterrows():
+        top_terms_str = _format_top_terms(row.get("top_terms"), top_terms_count)
+
+        line = (
+            f"  {row[groupby_field]} | topic {row.topic_id} | "
+            f"label: {clean_label(row.proposed_label)} | "
+            f"coherence: {row.coherence_flag} | "
+        )
+
+        if top_terms_str:
+            line += f"top_terms: {top_terms_str} | "
+
+        line += f"description: {clean_label(row.description)}"
+        lines.append(line)
+
+    return "\n".join(lines)
 
 
 def build_per_group_prompt(
@@ -1179,11 +1169,17 @@ def synthesize_one_group(
     system_prompt: str,
     warnings_path: Path,
     outpath_func: Callable[[str, str], Path],
+    synthesis_top_terms_count: int = 4,
     max_retries: int = 3,
     stage_name: str = "03_insights_generation",
 ) -> tuple[Any, str | None]:
     """Run one per-group synthesis pass and persist the raw text output."""
-    topic_lines_text = build_topic_lines(labels_df, groupby_field, group=group)
+    topic_lines_text = build_topic_lines(
+        labels_df,
+        groupby_field,
+        group=group,
+        top_terms_count=synthesis_top_terms_count,
+    )
     prompt = build_per_group_prompt(
         group=group,
         group_description=group_description,
@@ -1496,382 +1492,63 @@ def _parse_topic_id(val: Any) -> int:
     return int(s)
 
 
-def build_full_essay_text(project_id: Any, essay_lookup: dict[Any, str]) -> str:
-    """Return cleaned essay text for one project, or an empty string."""
-    if project_id in essay_lookup and str(essay_lookup[project_id]).strip():
-        return re.sub(r"\s+", " ", str(essay_lookup[project_id])).strip()
-    return ""
-
-
-def build_injected_tokens(project_id: Any, token_lookup: dict[Any, list[Any]]) -> str:
-    """Extract injected __token__ markers for one project for evidence exports."""
-    tokens = token_lookup.get(project_id, [])
-    injected = [
-        str(t).strip()
-        for t in tokens
-        if re.fullmatch(r"__[^_]+(?:_[^_]+)*__", str(t).strip())
-    ]
-    injected = list(dict.fromkeys(injected))
-    return " | ".join(injected)
-
-
-def build_evidence_obj(
-    candidate: dict[str, Any],
-    *,
-    groupby_field: str,
-    run_id: str,
-    n_representative: int,
-    topic_rows_cache_global: dict[str, pd.DataFrame],
-    label_index: dict[tuple[str, int], Any],
-) -> dict[str, Any]:
-    """Build the full evidence object for one candidate insight."""
-    insight = candidate["insight"]
-    source_topics = insight.get("source_topics", [])
-    claimed_topic_count = len(insight.get("source_topics_claimed", []))
-    supporting_project_ids, topic_rows_cache = get_project_ids(
-        source_topics,
-        topic_rows_cache_global,
-        groupby_field=groupby_field,
-        max_ids=None,
-    )
-
-    topic_support = []
-    for src in source_topics:
-        if not isinstance(src, dict):
-            continue
-        group = str(src.get("group", ""))
-        topic_id = int(float(src.get("topic_id", -1)))
-        topic_key = get_topic_key(groupby_field, group, topic_id)
-        topic_rows = topic_rows_cache.get(
-            topic_key,
-            pd.DataFrame(columns=["project_id", "weight", "topic_share"]),
-        )
-        label_row = label_index.get((group, topic_id))
-        topic_support.append(
-            {
-                "group": group,
-                "topic_id": topic_id,
-                "topic_label": (
-                    label_row["proposed_label"]
-                    if label_row is not None
-                    else "[not found in labels_df]"
-                ),
-                "topic_description": (
-                    label_row["description"]
-                    if label_row is not None
-                    else "[not found in labels_df]"
-                ),
-                "coherence_flag": (
-                    label_row["coherence_flag"]
-                    if label_row is not None
-                    else "unknown"
-                ),
-                "supporting_project_count": (
-                    int(topic_rows["project_id"].nunique())
-                    if not topic_rows.empty
-                    else 0
-                ),
-                "mean_topic_share": (
-                    float(topic_rows["topic_share"].mean())
-                    if not topic_rows.empty
-                    else 0.0
-                ),
-                "median_topic_share": (
-                    float(topic_rows["topic_share"].median())
-                    if not topic_rows.empty
-                    else 0.0
-                ),
-            }
-        )
-
-    # Sample the first N representative projects, keeping the best-matching topic.
-    sample_projects = []
-    for pid in supporting_project_ids[:n_representative]:
-        matches = []
-        for src in source_topics:
-            if not isinstance(src, dict):
-                continue
-            topic_key = get_topic_key(
-                groupby_field,
-                src.get("group", ""),
-                src.get("topic_id", -1),
-            )
-            topic_rows = topic_rows_cache.get(
-                topic_key,
-                pd.DataFrame(columns=["project_id", "topic_share"]),
-            )
-            hit = topic_rows[topic_rows["project_id"] == pid]
-            if not hit.empty:
-                matches.append(
-                    (
-                        src["group"],
-                        int(float(src["topic_id"])),
-                        float(hit["topic_share"].iloc[0]),
-                    )
-                )
-        if matches:
-            best = sorted(matches, key=lambda x: x[2], reverse=True)[0]
-            sample_projects.append(
-                {
-                    "project_id": pid,
-                    "group": best[0],
-                    "topic_id": best[1],
-                    "topic_share": best[2],
-                }
-            )
-
-    return {
-        "schema_version": "v1",
-        "run_id": run_id,
-        "insight_id": candidate["insight_id"],
-        "section": candidate["section"],
-        "category_bucket": candidate["category_bucket"],
-        "group_by_field": groupby_field,
-        "title": insight.get("title", ""),
-        "what_seeing": insight.get("what_seeing", ""),
-        "why_easy_to_miss": insight.get("why_easy_to_miss", ""),
-        "source_topics_claimed": insight.get("source_topics_claimed", []),
-        "source_topics_verified": source_topics,
-        "verification_drop_count": int(
-            max(claimed_topic_count - len(source_topics), 0)
-        ),
-        "supporting_project_count": int(len(supporting_project_ids)),
-        "topic_support": topic_support,
-        "sample_projects": sample_projects,
-        "claimed_topic_count": int(claimed_topic_count),
-    }
-
-
-def build_confidence_rationale(
-    conf_row: dict[str, Any],
-    *,
-    client,
-    model_name: str,
-    system_prompt: str,
-) -> str:
-    """Generate one short confidence rationale sentence."""
-    prompt = (
-        f"Insight: {conf_row['title']}\n"
-        f"Support volume score: {conf_row['support_volume_score']:.1f}\n"
-        f"Support breadth score: {conf_row['support_breadth_score']:.1f}\n"
-        f"Topic quality score: {conf_row['topic_quality_score']:.1f}\n"
-        f"Bridge strength score: {conf_row['bridge_strength_score']:.1f}\n"
-        f"Verification cleanliness score: {conf_row['verification_cleanliness_score']:.1f}\n"
-        f"Final confidence: {conf_row['confidence_score']:.1f} ({conf_row['confidence_band']})\n"
-        "Explain the main drivers in one short sentence."
-    )
-    try:
-        resp = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        return resp.choices[0].message.content.strip()
-    except Exception:
-        return (
-            f"Confidence is {conf_row['confidence_band']} because support volume, "
-            f"topic cleanliness, and bridge strength combine to "
-            f"{conf_row['confidence_score']:.1f} after penalties."
-        )
-
-
-def score_insight_confidence(
-    evidence_obj: dict[str, Any],
-    cfg: dict[str, Any],
-    topic_quality_map: dict[str, float],
-) -> dict[str, Any]:
-    """Score one evidence object using the notebook's weighted confidence formula."""
-    verified_topic_coherence_flags = [
-        ts["coherence_flag"] for ts in evidence_obj["topic_support"]
-    ]
-    supporting_project_count = int(evidence_obj["supporting_project_count"])
-    verified_topic_count = int(len(evidence_obj["source_topics_verified"]))
-    claimed_topic_count = int(evidence_obj["claimed_topic_count"])
-
-    support_volume_score = min(
-        100.0,
-        100.0 * supporting_project_count / cfg["support_volume_scale_effective"],
-    )
-    support_breadth_score = min(
-        100.0,
-        100.0 * verified_topic_count / cfg["support_breadth_scale_topics"],
-    )
-    topic_quality_score = (
-        0.0
-        if not verified_topic_coherence_flags
-        else 100.0
-        * sum(topic_quality_map.get(flag, 0.0) for flag in verified_topic_coherence_flags)
-        / len(verified_topic_coherence_flags)
-    )
-    mean_topic_share_all_verified_topics = (
-        0.0
-        if not evidence_obj["topic_support"]
-        else float(
-            sum(ts["mean_topic_share"] for ts in evidence_obj["topic_support"])
-            / len(evidence_obj["topic_support"])
-        )
-    )
-    bridge_strength_score = (
-        0.0
-        if not evidence_obj["topic_support"]
-        else min(
-            100.0,
-            100.0
-            * mean_topic_share_all_verified_topics
-            / cfg["bridge_strength_scale_topic_share"],
-        )
-    )
-
-    verification_ratio = verified_topic_count / claimed_topic_count
-    verification_cleanliness_score = 100.0 * (verification_ratio ** 2)
-
-    confidence_score = (
-        0.30 * support_volume_score
-        + 0.10 * support_breadth_score
-        + 0.20 * topic_quality_score
-        + 0.25 * bridge_strength_score
-        + 0.15 * verification_cleanliness_score
-    )
-    confidence_score = round(max(0.0, min(100.0, confidence_score)), 1)
-
-    if confidence_score >= cfg["band_thresholds"]["high"]:
-        confidence_band = "high"
-    elif confidence_score >= cfg["band_thresholds"]["medium"]:
-        confidence_band = "medium"
-    else:
-        confidence_band = "low"
-
-    return {
-        "support_volume_score": round(support_volume_score, 1),
-        "support_breadth_score": round(support_breadth_score, 1),
-        "topic_quality_score": round(topic_quality_score, 1),
-        "bridge_strength_score": round(bridge_strength_score, 1),
-        "verification_cleanliness_score": round(verification_cleanliness_score, 1),
-        "confidence_score": confidence_score,
-        "confidence_band": confidence_band,
-        "confidence_rationale": None,
-        "supporting_project_count": supporting_project_count,
-        "verified_topic_count": verified_topic_count,
-        "claimed_topic_count": claimed_topic_count,
-        "mean_topic_share_all_verified_topics": round(
-            mean_topic_share_all_verified_topics, 4
-        ),
-        "verified_topic_coherence_flags": verified_topic_coherence_flags,
-    }
-
-
-def _build_rationale_for_row(
-    conf_row: dict[str, Any],
-    *,
-    client,
-    model_name: str,
-    system_prompt: str,
-) -> tuple[str, str]:
-    """Small executor wrapper so the notebook can parallelize rationale generation."""
-    rationale = build_confidence_rationale(
-        conf_row,
-        client=client,
-        model_name=model_name,
-        system_prompt=system_prompt,
-    )
-    return conf_row["insight_id"], rationale
-
-
-def _simulate_tier(row: pd.Series | dict[str, Any], tier_cfg: dict[str, Any]) -> str:
-    """Mirror assign_insight_tier without rejected-reason detail for diagnostics."""
-    cs = row["confidence_score"]
-    spc = row["supporting_project_count"]
-    vtc = row["verified_topic_count"]
-    tqs = row["topic_quality_score"]
-    bss = row["bridge_strength_score"]
-    top = tier_cfg["top"]
-    sec = tier_cfg["secondary"]
-    ter = tier_cfg["tertiary"]
-
-    if (
-        cs >= top["min_confidence_score"]
-        and spc >= top["min_supporting_project_count"]
-        and vtc >= top["min_verified_topic_count"]
-        and tqs >= top["min_topic_quality_score"]
-        and bss >= top["min_bridge_strength_score"]
-    ):
-        return "top"
-    if (
-        cs >= sec["min_confidence_score"]
-        and spc >= sec["min_supporting_project_count"]
-        and tqs >= sec["min_topic_quality_score"]
-        and bss >= sec["min_bridge_strength_score"]
-    ):
-        return "secondary"
-    if (
-        cs >= ter["min_confidence_score"]
-        and spc >= ter["min_supporting_project_count"]
-        and tqs >= ter["min_topic_quality_score"]
-        and bss >= ter["min_bridge_strength_score"]
-    ):
-        return "tertiary"
-    return "rejected"
-
-
 # ── Tiering + dedupe + report helpers ────────────────────────────────────────
 
 
-def assign_insight_tier(
-    confidence_obj: dict[str, Any],
-    cfg: dict[str, Any],
-) -> tuple[str, str | None]:
-    """Assign a final tier while preserving the notebook's original reason codes."""
-    supporting_project_count = confidence_obj["supporting_project_count"]
-    verified_topic_count = confidence_obj["verified_topic_count"]
-    claimed_topic_count = confidence_obj["claimed_topic_count"]
-    confidence_score = confidence_obj["confidence_score"]
-    topic_quality_score = confidence_obj["topic_quality_score"]
-    bridge_strength_score = confidence_obj["bridge_strength_score"]
-    early_rejected_reason_code = confidence_obj.get("early_rejected_reason_code")
+def _verify_insight_list(
+    items,
+    *,
+    labels_df: pd.DataFrame,
+    groupby_field: str,
+    required_group_values: list[Any],
+    client,
+    model_verify: str,
+    system_prompt: str,
+    warnings_path: Path,
+    min_source_topics_to_verify: int = 1,
+):
+    verified_items = []
+    changed_count = 0
+    dropped_to_zero_count = 0
+    topics_before = 0
+    topics_after = 0
 
-    if early_rejected_reason_code:
-        return "rejected", early_rejected_reason_code
-    if claimed_topic_count > 0 and verified_topic_count == 0:
-        return "rejected", "verification_failed"
+    for insight in items:
+        before_n = len(insight.get("source_topics", []))
+        topics_before += before_n
 
-    top = cfg["top"]
-    sec = cfg["secondary"]
-    ter = cfg["tertiary"]
+        if before_n >= min_source_topics_to_verify:
+            verified = verify_source_topics(
+                insight,
+                labels_df=labels_df,
+                groupby_field=groupby_field,
+                required_group_values=required_group_values,
+                client=client,
+                model_verify=model_verify,
+                system_prompt=system_prompt,
+                warnings_path=warnings_path,
+            )
+        else:
+            verified = insight
 
-    if (
-        confidence_score >= top["min_confidence_score"]
-        and supporting_project_count >= top["min_supporting_project_count"]
-        and verified_topic_count >= top["min_verified_topic_count"]
-        and topic_quality_score >= top["min_topic_quality_score"]
-        and bridge_strength_score >= top["min_bridge_strength_score"]
-    ):
-        return "top", None
+        after_n = len(verified.get("source_topics", []))
+        topics_after += after_n
 
-    if (
-        confidence_score >= sec["min_confidence_score"]
-        and supporting_project_count >= sec["min_supporting_project_count"]
-        and topic_quality_score >= sec["min_topic_quality_score"]
-        and bridge_strength_score >= sec["min_bridge_strength_score"]
-    ):
-        return "secondary", None
+        if after_n != before_n:
+            changed_count += 1
+        if before_n > 0 and after_n == 0:
+            dropped_to_zero_count += 1
 
-    if (
-        confidence_score >= ter["min_confidence_score"]
-        and supporting_project_count >= ter["min_supporting_project_count"]
-        and topic_quality_score >= ter["min_topic_quality_score"]
-        and bridge_strength_score >= ter["min_bridge_strength_score"]
-    ):
-        return "tertiary", None
+        verified_items.append(verified)
 
-    if supporting_project_count < ter["min_supporting_project_count"]:
-        return "rejected", "low_support"
-    if topic_quality_score < ter["min_topic_quality_score"]:
-        return "rejected", "low_topic_quality"
-    if bridge_strength_score < ter["min_bridge_strength_score"]:
-        return "rejected", "low_bridge_strength"
-    return "rejected", "below_thresholds"
+    stats = {
+        "insight_count": len(items),
+        "changed_count": changed_count,
+        "dropped_to_zero_count": dropped_to_zero_count,
+        "topics_before": topics_before,
+        "topics_after": topics_after,
+    }
+    return verified_items, stats
 
 
 def _nano_dedup_decision(
@@ -1921,22 +1598,110 @@ text_overlap: {screen_meta['text_overlap']:.3f}
 # ── DOCX report helpers ───────────────────────────────────────────────────────
 
 
-REPORT_TIER_ORDER = ("top", "secondary", "tertiary", "rejected")
+def build_looker_project_url(
+    *,
+    base_url: str,
+    project_ids: list[Any],
+    filter_field: str,
+    fields: list[str] | str,
+    limit: int = 500,
+    max_ids: int = 100,
+) -> str:
+    """Build a Looker Explore URL for a capped list of supporting project IDs.
+
+    Behavior:
+    - Returns "" when project_ids is empty after normalization.
+    - Joins `fields` with commas before URL encoding.
+    - Encodes the filter as f[<filter_field>]=comma-separated-project-ids.
+    - Deduplicates project_ids while preserving their ranked order.
+    - Caps IDs at max_ids before building the URL.
+    """
+    def _normalize_project_id(value: Any) -> str:
+        if pd.isna(value):
+            return ""
+        try:
+            numeric = float(value)
+            if numeric.is_integer():
+                return str(int(numeric))
+        except (TypeError, ValueError):
+            pass
+        return str(value).strip()
+
+    normalized_ids = []
+    for value in project_ids:
+        pid = _normalize_project_id(value)
+        if pid:
+            normalized_ids.append(pid)
+
+    normalized_ids = list(dict.fromkeys(normalized_ids))[:max_ids]
+    if not normalized_ids:
+        return ""
+
+    if isinstance(fields, (list, tuple)):
+        fields_param = ",".join(str(f).strip() for f in fields if str(f).strip())
+    else:
+        fields_param = str(fields).strip()
+
+    if not fields_param:
+        raise ValueError("build_looker_project_url requires at least one field")
+
+    params = {
+        "fields": fields_param,
+        f"f[{filter_field}]": ",".join(normalized_ids),
+        "limit": str(limit),
+    }
+    return f"{base_url}?{urlencode(params)}"
+
+
+def add_hyperlink(paragraph, text: str, url: str):
+    """Add an external hyperlink to a python-docx paragraph."""
+    r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+
+    hyperlink = OxmlElement("w:hyperlink")
+    hyperlink.set(qn("r:id"), r_id)
+
+    new_run = OxmlElement("w:r")
+    r_pr = OxmlElement("w:rPr")
+
+    color = OxmlElement("w:color")
+    color.set(qn("w:val"), "0563C1")
+    r_pr.append(color)
+
+    underline = OxmlElement("w:u")
+    underline.set(qn("w:val"), "single")
+    r_pr.append(underline)
+
+    new_run.append(r_pr)
+
+    text_elem = OxmlElement("w:t")
+    text_elem.text = text
+    new_run.append(text_elem)
+
+    hyperlink.append(new_run)
+    paragraph._p.append(hyperlink)
+    return hyperlink
 
 
 def add_heading(doc, text: str, level: int):
-    """Add a DOCX heading with the notebook's standard black heading style."""
     p = doc.add_heading(text, level=level)
     p.runs[0].font.color.rgb = RGBColor(0, 0, 0)
+    p.runs[0].font.name = "Arial"
     return p
 
 
-def add_insight(doc, insight: dict[str, Any]) -> None:
+def add_insight(
+    doc,
+    insight: dict[str, Any],
+    *,
+    include_looker_link: bool = True,
+    looker_link_text: str = "Project essays for this insight",
+) -> None:
     """Add one accepted insight to the final DOCX report."""
     p = doc.add_paragraph()
     run = p.add_run(insight.get("title", ""))
     run.bold = True
     run.font.size = Pt(11)
+    run.font.color.rgb = RGBColor(0x3e, 0x00, 0xc9)
 
     # Keep the body labels and font sizing identical to the original notebook.
     for label, key in [
@@ -1950,49 +1715,30 @@ def add_insight(doc, insight: dict[str, Any]) -> None:
         body_run = p.add_run(insight.get(key, ""))
         body_run.font.size = Pt(10)
         p.paragraph_format.space_after = Pt(2)
+
+    if include_looker_link and insight.get("looker_url"):
+        p = doc.add_paragraph()
+        label_run = p.add_run("Explore supporting projects: ")
+        label_run.bold = True
+        label_run.font.size = Pt(10)
+        add_hyperlink(p, looker_link_text, insight["looker_url"])
+        p.paragraph_format.space_after = Pt(2)
+
     doc.add_paragraph()
-
-
-def _safe_float(v):
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        return 0.0
-
-
-def _safe_int(v):
-    try:
-        return int(v)
-    except (TypeError, ValueError):
-        return 0
-
-
-def sort_insights_for_report(
-    items: list[dict],
-    tier_order: tuple = REPORT_TIER_ORDER,
-) -> list[dict]:
-    """Return items sorted for report rendering."""
-    rank = {t: i for i, t in enumerate(tier_order)}
-    return sorted(
-        items,
-        key=lambda x: (
-            rank.get(str(x.get("tier", "")).lower(), len(tier_order)),
-            -_safe_float(x.get("confidence_score")),
-            -_safe_int(x.get("supporting_project_count")),
-            -_safe_int(x.get("verified_topic_count")),
-            str(x.get("title", "")),
-        ),
-    )
 
 
 def add_insight_meta_line(doc, insight: dict, font_size_pt: float = 8.5) -> None:
     """Add a compact italic meta line above an insight body."""
+    mean_topic_fit = insight.get("mean_topic_share_all_verified_topics", None)
+    if isinstance(mean_topic_fit, (int, float)):
+        mean_topic_fit = f"{round(mean_topic_fit * 100):.0f}%"
+    else:
+        mean_topic_fit = "—"
+
     text = (
-        f"Tier: {insight.get('tier', '—')}  |  "
-        f"Confidence: {insight.get('confidence_band', '—')} "
-        f"({insight.get('confidence_score', '—')})  |  "
         f"Supporting projects: {insight.get('supporting_project_count', '—')}  |  "
-        f"Verified topics: {insight.get('verified_topic_count', '—')}"
+        f"Verified source topics: {insight.get('verified_topic_count', '—')}  |  "
+        f"Average topic fit: {mean_topic_fit}"
     )
     p = doc.add_paragraph()
     run = p.add_run(text)
@@ -2005,6 +1751,7 @@ def _add_report_summary(
     doc, structured, output_group_key,
     key_tiers, other_tiers, key_label, other_label,
     project_count=None,
+    run_id=None,
 ) -> None:
     all_items = structured.get("key_insights", []) + [
         i for items in structured.get(output_group_key, {}).values() for i in items
@@ -2015,39 +1762,42 @@ def _add_report_summary(
     if project_count is not None:
         parts.append(f"Projects in study: {project_count:,}")
     parts += [f"{key_label}: {key_n}", f"{other_label}: {other_n}"]
+    if run_id is not None:
+        date_time = "_".join(str(run_id).split("_")[:2])
+        parts.append(f"Run ID: {date_time}")
     p = doc.add_paragraph()
-    run = p.add_run("    ".join(parts))
+    run = p.add_run("  |  ".join(parts))
     run.italic = True
     run.font.size = Pt(9)
     doc.add_paragraph()
 
 
-def build_trend_tracker_report_docx(
+def build_packaged_report_docx(
     *,
     structured: dict,
     output_path,
-    groupby_field: str,
     output_group_key: str = "by_group",
     report_cfg: dict,
     project_count: int | None = None,
-    tier_order: tuple = REPORT_TIER_ORDER,
+    run_id: str | None = None,
     normal_font_name: str = "Arial",
     normal_font_size_pt: float = 10.0,
     margin_inches: float = 1.0,
 ) -> None:
-    """Build and save the tier-aware DOCX report."""
     from docx import Document
     from docx.shared import Inches
 
-    title        = report_cfg.get("report_title", f"Trend Report: {groupby_field}")
-    key_tiers    = {t.lower() for t in report_cfg.get("report_key_tiers", ["top", "secondary"])}
-    other_tiers  = {t.lower() for t in report_cfg.get("report_other_tiers", ["tertiary"])}
-    key_label    = report_cfg.get("report_key_section_label", "Key Insights")
-    other_label  = report_cfg.get("report_other_section_label", "Other Insights")
-    cc_label     = report_cfg.get("report_cross_category_label", "Cross-Category Similarities")
-    gs_label     = report_cfg.get("report_group_specific_label", "Group-Specific Findings")
-    incl_meta    = report_cfg.get("report_include_meta_line", True)
+    title = report_cfg.get("report_title", "Trend Report")
+    main_label = report_cfg.get("report_main_section_label", "Main Insights")
+    appendix_label = report_cfg.get("report_appendix_section_label", "Appendix")
+    main_cross_label = report_cfg.get("report_main_cross_label", "Cross-Category Similarities")
+    main_by_group_label = report_cfg.get("report_main_by_group_label", "Group-Specific Findings")
+    appendix_cross_label = report_cfg.get("report_appendix_cross_label", "Additional Cross-Category Insights")
+    appendix_by_group_label = report_cfg.get("report_appendix_by_group_label", "Additional Group-Specific Findings")
+    incl_meta = report_cfg.get("report_include_meta_line", True)
     incl_summary = report_cfg.get("report_include_signal_summary", True)
+    incl_looker_link = report_cfg.get("report_include_looker_link", True)
+    looker_link_text = report_cfg.get("report_looker_link_text", "Project essays for this insight")
 
     doc = Document()
     for sec in doc.sections:
@@ -2056,54 +1806,482 @@ def build_trend_tracker_report_docx(
     style.font.name = normal_font_name
     style.font.size = Pt(normal_font_size_pt)
 
-    add_heading(doc, title, level=1)
+    p = doc.add_paragraph()
+    run = p.add_run(title)
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(20)
+    run.font.color.rgb = RGBColor(0x3e, 0x00, 0xc9)
+    p.paragraph_format.space_after = Pt(6)
 
     if incl_summary:
-        _add_report_summary(
-            doc, structured, output_group_key,
-            key_tiers, other_tiers, key_label, other_label,
-            project_count=project_count,
-        )
+        all_items = structured.get("key_insights", []) + [
+            i for items in structured.get(output_group_key, {}).values() for i in items
+        ]
+        parts = []
+        if project_count is not None:
+            parts.append(f"Projects in study: {project_count:,}")
+        parts.append(f"Accepted insights: {len(all_items)}")
+        if run_id is not None:
+            parts.append(f"Run ID: {'_'.join(str(run_id).split('_')[:2])}")
+        p = doc.add_paragraph()
+        run = p.add_run("  |  ".join(parts))
+        run.italic = True
+        run.font.size = Pt(9)
+        doc.add_paragraph()
 
-    cc_items    = structured.get("key_insights", [])
-    gs_by_group = structured.get(output_group_key, {})
-
-    for section_label, tiers in [(key_label, key_tiers), (other_label, other_tiers)]:
-        cc = [i for i in cc_items if str(i.get("tier", "")).lower() in tiers]
-        gs = {
-            g: [i for i in items if str(i.get("tier", "")).lower() in tiers]
-            for g, items in gs_by_group.items()
+    def _items(section_name):
+        cross = [i for i in structured.get("key_insights", []) if i.get("report_section") == section_name]
+        by_group = {
+            g: [i for i in items if i.get("report_section") == section_name]
+            for g, items in structured.get(output_group_key, {}).items()
         }
-        has_cc = bool(cc)
-        has_gs = any(bool(v) for v in gs.values())
-        if not has_cc and not has_gs:
-            continue
+        return cross, by_group
 
-        add_heading(doc, section_label, level=1)
+    def _render_bucket(section_title, cross_title, by_group_title, cross_key, by_group_key):
+        cross, by_group = _items(cross_key)
+        cross2, by_group2 = _items(by_group_key)
+        cross = cross + cross2
+        merged_by_group = {}
+        for g, items in by_group.items():
+            merged_by_group[g] = merged_by_group.get(g, []) + items
+        for g, items in by_group2.items():
+            merged_by_group[g] = merged_by_group.get(g, []) + items
 
-        if has_cc:
-            add_heading(doc, cc_label, level=2)
-            for insight in sort_insights_for_report(cc, tier_order):
+        if not cross and not any(merged_by_group.values()):
+            return
+
+        p = doc.add_paragraph()
+        run = p.add_run(section_title)
+        run.bold = True
+        run.underline = True
+        run.font.name = "Arial"
+        run.font.size = Pt(16)
+        p.paragraph_format.space_before = Pt(12)
+        p.paragraph_format.space_after = Pt(6)
+
+        if cross:
+            p = doc.add_paragraph()
+            run = p.add_run(cross_title)
+            run.bold = True
+            run.font.size = Pt(14)
+            p.paragraph_format.space_before = Pt(8)
+            p.paragraph_format.space_after = Pt(10)
+            for insight in sorted(cross, key=lambda x: (x.get("report_order", 9999), x.get("title", ""))):
                 if incl_meta:
                     add_insight_meta_line(doc, insight)
-                add_insight(doc, insight)
-
-        if has_gs:
-            add_heading(doc, gs_label, level=2)
-            for group, items in gs_by_group.items():
-                sorted_items = sort_insights_for_report(
-                    [i for i in items if str(i.get("tier", "")).lower() in tiers],
-                    tier_order,
+                add_insight(
+                    doc,
+                    insight,
+                    include_looker_link=incl_looker_link,
+                    looker_link_text=looker_link_text,
                 )
-                if not sorted_items:
+
+        if any(merged_by_group.values()):
+            p = doc.add_paragraph()
+            run = p.add_run(by_group_title)
+            run.bold = True
+            run.font.size = Pt(14)
+            p.paragraph_format.space_before = Pt(8)
+            p.paragraph_format.space_after = Pt(10)
+            for group, items in sorted(merged_by_group.items()):
+                if not items:
                     continue
-                add_heading(doc, str(group), level=3)
-                for insight in sorted_items:
+                p = doc.add_paragraph()
+                run = p.add_run(str(group))
+                run.bold = True
+                run.font.size = Pt(12)
+                p.paragraph_format.space_before = Pt(6)
+                p.paragraph_format.space_after = Pt(4)
+                for insight in sorted(items, key=lambda x: (x.get("report_order", 9999), x.get("title", ""))):
                     if incl_meta:
                         add_insight_meta_line(doc, insight)
-                    add_insight(doc, insight)
+                    add_insight(
+                        doc,
+                        insight,
+                        include_looker_link=incl_looker_link,
+                        looker_link_text=looker_link_text,
+                    )
 
+    _render_bucket(main_label, main_cross_label, main_by_group_label, "main_cross", "main_by_group")
+    _render_bucket(appendix_label, appendix_cross_label, appendix_by_group_label, "appendix_cross", "appendix_by_group")
     doc.save(output_path)
+
+
+def build_bridge_lookup(project_topic_bridge_df: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    return {
+        topic_key: grp[["project_id", "weight", "topic_share"]].copy()
+        for topic_key, grp in project_topic_bridge_df.groupby("topic_key", observed=True)
+    }
+
+
+def build_label_index(
+    labels_df: pd.DataFrame,
+    groupby_field: str,
+    warnings_path: Path | None = None,
+    stage_name: str = "03_insights_generation",
+) -> dict[tuple[str, int], Any]:
+    out = {}
+    for _, row in labels_df.iterrows():
+        key = (str(row[groupby_field]), int(row["topic_id"]))
+        if key in out and warnings_path is not None:
+            append_warning(
+                warnings_path,
+                stage_name,
+                "DUPLICATE_TOPIC_LABEL_ROW",
+                f"Duplicate labels_df row for {key}; keeping first occurrence",
+                context={"group": key[0], "topic_id": key[1]},
+            )
+            continue
+        out[key] = row
+    return out
+
+
+def summarize_insight_support(
+    candidate: dict[str, Any],
+    *,
+    groupby_field: str,
+    run_id: str,
+    bridge_lookup: dict[str, pd.DataFrame],
+    label_index: dict[tuple[str, int], Any],
+    top_project_id_limit: int = 100,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    insight = candidate["insight"]
+    source_topics = insight.get("source_topics", [])
+    claimed_topic_count = len(insight.get("source_topics_claimed", []))
+
+    support_rows = []
+    ranking_frames = []
+
+    for src in source_topics:
+        if not isinstance(src, dict):
+            continue
+
+        group = str(src.get("group", "")).strip()
+        topic_id = int(float(src.get("topic_id", -1)))
+        topic_key = get_topic_key(groupby_field, group, topic_id)
+        topic_rows = bridge_lookup.get(
+            topic_key,
+            pd.DataFrame(columns=["project_id", "weight", "topic_share"]),
+        )
+        label_row = label_index.get((group, topic_id))
+
+        if not topic_rows.empty:
+            ranking_frames.append(
+                topic_rows[["project_id", "topic_share", "weight"]].copy()
+            )
+
+        support_rows.append(
+            {
+                "run_id": run_id,
+                "insight_id": candidate["insight_id"],
+                "section": candidate["section"],
+                "category_bucket": candidate["category_bucket"],
+                "group_by_field": groupby_field,
+                "group_value": group,
+                "topic_id": topic_id,
+                "topic_label": label_row["proposed_label"] if label_row is not None else "[not found in labels_df]",
+                "topic_description": label_row["description"] if label_row is not None else "[not found in labels_df]",
+                "coherence_flag": label_row["coherence_flag"] if label_row is not None else "unknown",
+                "supporting_project_count": int(topic_rows["project_id"].nunique()) if not topic_rows.empty else 0,
+                "mean_topic_share": float(topic_rows["topic_share"].mean()) if not topic_rows.empty else 0.0,
+                "median_topic_share": float(topic_rows["topic_share"].median()) if not topic_rows.empty else 0.0,
+            }
+        )
+
+    if ranking_frames:
+        project_scores = (
+            pd.concat(ranking_frames, ignore_index=True)
+            .groupby("project_id", as_index=False)
+            .agg(
+                total_topic_share=("topic_share", "sum"),
+                total_weight=("weight", "sum"),
+            )
+        )
+        project_scores["project_id_numeric"] = pd.to_numeric(
+            project_scores["project_id"],
+            errors="coerce",
+        )
+        project_scores = project_scores.sort_values(
+            ["total_topic_share", "total_weight", "project_id_numeric", "project_id"],
+            ascending=[False, False, True, True],
+            na_position="last",
+        )
+        top_project_ids = project_scores["project_id"].tolist()[:top_project_id_limit]
+        supporting_project_count = int(len(project_scores))
+    else:
+        top_project_ids = []
+        supporting_project_count = 0
+
+    verified_topic_count = len(support_rows)
+    verification_ratio = (
+        verified_topic_count / claimed_topic_count if claimed_topic_count > 0 else 0.0
+    )
+    mean_topic_share_all_verified_topics = (
+        float(np.mean([r["mean_topic_share"] for r in support_rows])) if support_rows else 0.0
+    )
+
+    flat_row = {
+        "run_id": run_id,
+        "insight_id": candidate["insight_id"],
+        "section": candidate["section"],
+        "category_bucket": candidate["category_bucket"],
+        "title": insight.get("title", ""),
+        "what_seeing": insight.get("what_seeing", ""),
+        "why_easy_to_miss": insight.get("why_easy_to_miss", ""),
+        "source_topics_verified": source_topics,
+        "source_topics_claimed": insight.get("source_topics_claimed", []),
+        "claimed_topic_count": int(claimed_topic_count),
+        "verified_topic_count": int(verified_topic_count),
+        "verification_ratio": float(verification_ratio),
+        "supporting_project_count": int(supporting_project_count),
+        "mean_topic_share_all_verified_topics": float(mean_topic_share_all_verified_topics),
+        "top_project_ids": top_project_ids,
+    }
+    return flat_row, support_rows
+
+
+def build_verified_insight_tables(
+    insights_data: dict[str, Any],
+    output_group_key: str,
+    *,
+    groupby_field: str,
+    bridge_lookup: dict[str, pd.DataFrame],
+    label_index: dict[tuple[str, int], Any],
+    run_id: str | None = None,
+    top_project_id_limit: int = 100,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    flat_rows = []
+    support_rows = []
+
+    for candidate in iter_candidate_insights(insights_data, output_group_key):
+        flat_row, topic_rows = summarize_insight_support(
+            candidate,
+            groupby_field=groupby_field,
+            run_id=run_id,
+            bridge_lookup=bridge_lookup,
+            label_index=label_index,
+            top_project_id_limit=top_project_id_limit,
+        )
+        flat_rows.append(flat_row)
+        support_rows.extend(topic_rows)
+
+    return pd.DataFrame(flat_rows), pd.DataFrame(support_rows)
+
+
+def apply_deterministic_packaging(
+    insights_flat_df: pd.DataFrame,
+    *,
+    output_group_key: str,
+    packaging_cfg: dict[str, Any],
+) -> dict[str, pd.DataFrame]:
+    pack_df = insights_flat_df.copy()
+    pack_df["verified_topic_count"] = pack_df["verified_topic_count"].fillna(0).astype(int)
+    pack_df["claimed_topic_count"] = pack_df["claimed_topic_count"].fillna(0).astype(int)
+    pack_df["supporting_project_count"] = pack_df["supporting_project_count"].fillna(0).astype(int)
+    pack_df["mean_topic_share_all_verified_topics"] = (
+        pack_df["mean_topic_share_all_verified_topics"].fillna(0.0).astype(float)
+    )
+    if "verification_ratio" not in pack_df.columns:
+        pack_df["verification_ratio"] = np.where(
+            pack_df["claimed_topic_count"] > 0,
+            pack_df["verified_topic_count"] / pack_df["claimed_topic_count"],
+            0.0,
+        )
+
+    accepted_df = pack_df[
+        (pack_df["verified_topic_count"] >= packaging_cfg["min_verified_topic_count"])
+        & (pack_df["supporting_project_count"] >= packaging_cfg["min_supporting_project_count"])
+        & (pack_df["mean_topic_share_all_verified_topics"] >= packaging_cfg["min_mean_topic_share"])
+    ].copy()
+
+    accepted_df = accepted_df.sort_values(
+        ["supporting_project_count", "verified_topic_count", "mean_topic_share_all_verified_topics", "title"],
+        ascending=[False, False, False, True],
+    ).reset_index(drop=True)
+
+    empty_df = accepted_df.iloc[0:0].copy()
+    return {
+        "accepted_df": accepted_df,
+        "main_cross_df": empty_df.copy(),
+        "main_by_group_df": empty_df.copy(),
+        "appendix_df": accepted_df.copy(),
+    }
+
+
+def dedupe_packaged_insights(
+    accepted_df: pd.DataFrame,
+    *,
+    dedupe_cfg: dict[str, Any],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    working_df = accepted_df.copy()
+    working_df["verified_topics_list"] = working_df["source_topics_verified"].apply(_topic_list)
+    working_df["title_tokens"] = working_df["title"].apply(_token_set)
+    working_df["text_tokens"] = (
+        working_df["title"].fillna("") + " " + working_df["what_seeing"].fillna("")
+    ).apply(_token_set)
+
+    working_df = working_df.sort_values(
+        ["mean_topic_share_all_verified_topics", "supporting_project_count", "verification_ratio"],
+        ascending=False,
+    ).reset_index(drop=True)
+
+    kept_rows = []
+    audit_rows = []
+
+    for _, row in working_df.iterrows():
+        row_dict = row.to_dict()
+        drop_current = False
+
+        for kept in kept_rows:
+            screen_meta = _screen_pair(row_dict, kept)
+            if screen_meta is None or screen_meta["pair_kind"] == "bg_vs_key":
+                continue
+
+            topic_overlap = screen_meta["topic_overlap"]
+            title_overlap = screen_meta["title_overlap"]
+            text_overlap = screen_meta["text_overlap"]
+
+            is_obvious_duplicate = (
+                (topic_overlap >= dedupe_cfg["topic_overlap_high"])
+                or (
+                    topic_overlap >= dedupe_cfg["topic_overlap_min"]
+                    and title_overlap >= dedupe_cfg["title_overlap_min"]
+                    and text_overlap >= dedupe_cfg["text_overlap_min"]
+                )
+            )
+
+            if is_obvious_duplicate:
+                drop_current = True
+                audit_rows.append(
+                    {
+                        "dropped_insight_id": row_dict["insight_id"],
+                        "matched_kept_insight_id": kept["insight_id"],
+                        "pair_kind": screen_meta["pair_kind"],
+                        "topic_overlap": topic_overlap,
+                        "title_overlap": title_overlap,
+                        "text_overlap": text_overlap,
+                        "reason": "deterministic_obvious_duplicate",
+                    }
+                )
+                break
+
+        if not drop_current:
+            kept_rows.append(row_dict)
+
+    return pd.DataFrame(kept_rows).copy(), pd.DataFrame(audit_rows).copy()
+
+
+def assign_topline_sections_simple(
+    curated_df: pd.DataFrame,
+    *,
+    output_group_key: str,
+    main_cross_limit: int,
+) -> pd.DataFrame:
+    rank_cols = [
+        "supporting_project_count",
+        "verified_topic_count",
+        "mean_topic_share_all_verified_topics",
+        "title",
+    ]
+    rank_asc = [False, False, False, True]
+
+    working_df = curated_df.copy()
+
+    main_cross_df = (
+        working_df[working_df["section"] == "key_insights"]
+        .sort_values(rank_cols, ascending=rank_asc)
+        .head(main_cross_limit)
+        .copy()
+    )
+    main_cross_df["report_section"] = "main_cross"
+    main_cross_df["report_order"] = range(1, len(main_cross_df) + 1)
+
+    main_by_group_df = (
+        working_df[working_df["section"] == output_group_key]
+        .sort_values(
+            ["category_bucket", "supporting_project_count", "verified_topic_count", "mean_topic_share_all_verified_topics", "title"],
+            ascending=[True, False, False, False, True],
+        )
+        .groupby("category_bucket", as_index=False, sort=True)
+        .head(1)
+        .copy()
+    )
+    main_by_group_df["report_section"] = "main_by_group"
+    main_by_group_df["report_order"] = range(1, len(main_by_group_df) + 1)
+
+    main_ids = set(main_cross_df["insight_id"]).union(set(main_by_group_df["insight_id"]))
+    remainder_df = working_df[~working_df["insight_id"].isin(main_ids)].copy()
+
+    appendix_cross_df = (
+        remainder_df[remainder_df["section"] == "key_insights"]
+        .sort_values(rank_cols, ascending=rank_asc)
+        .copy()
+    )
+    appendix_cross_df["report_section"] = "appendix_cross"
+    appendix_cross_df["report_order"] = range(1, len(appendix_cross_df) + 1)
+
+    appendix_by_group_df = (
+        remainder_df[remainder_df["section"] == output_group_key]
+        .sort_values(
+            ["category_bucket", "supporting_project_count", "verified_topic_count", "mean_topic_share_all_verified_topics", "title"],
+            ascending=[True, False, False, False, True],
+        )
+        .copy()
+    )
+    appendix_by_group_df["report_section"] = "appendix_by_group"
+    appendix_by_group_df["report_order"] = (
+        appendix_by_group_df.groupby("category_bucket", sort=True).cumcount() + 1
+    )
+
+    return pd.concat(
+        [main_cross_df, main_by_group_df, appendix_cross_df, appendix_by_group_df],
+        ignore_index=True,
+        sort=False,
+    )
+
+
+def build_structured_from_curated(
+    curated_df: pd.DataFrame,
+    *,
+    output_group_key: str,
+) -> dict[str, Any]:
+    structured = {"key_insights": [], output_group_key: {}}
+
+    for _, row in curated_df.sort_values(["report_section", "report_order", "title"]).iterrows():
+        looker_url = row.get("looker_url", "")
+        if pd.isna(looker_url):
+            looker_url = ""
+
+        top_project_ids = row.get("top_project_ids", [])
+        if pd.isna(top_project_ids) if not isinstance(top_project_ids, list) else False:
+            top_project_ids = []
+        if not isinstance(top_project_ids, list):
+            top_project_ids = []
+
+        item = {
+            "insight_id": row["insight_id"],
+            "title": row["title"],
+            "what_seeing": row["what_seeing"],
+            "why_easy_to_miss": row["why_easy_to_miss"],
+            "source_topics": row["source_topics_verified"],
+            "supporting_project_count": int(row["supporting_project_count"]),
+            "verified_topic_count": int(row["verified_topic_count"]),
+            "verification_ratio": float(row["verification_ratio"]),
+            "mean_topic_share_all_verified_topics": float(row["mean_topic_share_all_verified_topics"]),
+            "top_project_ids": top_project_ids,
+            "looker_url": looker_url,
+            "report_section": row["report_section"],
+            "report_order": int(row["report_order"]),
+            "warnings": [],
+        }
+        if row["section"] == "key_insights":
+            structured["key_insights"].append(item)
+        else:
+            structured[output_group_key].setdefault(row["category_bucket"], []).append(item)
+
+    return structured
+
 
 __all__ = [
     "ROOT",
@@ -2138,7 +2316,6 @@ __all__ = [
     "slugify_group_value",
     "load_essay_snippet_lookup",
     "quality_report",
-    "get_effective_support_volume_scale",
     "_norm_text",
     "_token_set",
     "_jaccard",
@@ -2146,7 +2323,6 @@ __all__ = [
     "_stronger_key",
     "_pair_kind",
     "_screen_pair",
-    "infer_category_family",
     "cat_tfidf_slice",
     "choose_n_components",
     "nmf_one",
@@ -2165,22 +2341,20 @@ __all__ = [
     "normalize_insight",
     "verify_source_topics",
     "get_topic_key",
-    "get_project_ids",
     "iter_candidate_insights",
     "_parse_topic_id",
-    "build_full_essay_text",
-    "build_injected_tokens",
-    "build_evidence_obj",
-    "build_confidence_rationale",
-    "score_insight_confidence",
-    "_build_rationale_for_row",
-    "_simulate_tier",
-    "assign_insight_tier",
-    "_nano_dedup_decision",
+    "build_bridge_lookup",
+    "build_label_index",
+    "summarize_insight_support",
+    "build_verified_insight_tables",
+    "apply_deterministic_packaging",
+    "dedupe_packaged_insights",
+    "assign_topline_sections_simple",
+    "build_structured_from_curated",
     "add_heading",
     "add_insight",
-    "REPORT_TIER_ORDER",
-    "sort_insights_for_report",
     "add_insight_meta_line",
-    "build_trend_tracker_report_docx",
+    "build_packaged_report_docx",
+    "project_insight_for_saved_candidates",
+    "_verify_insight_list"
 ]
