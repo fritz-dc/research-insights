@@ -122,7 +122,7 @@
   {
     "category": "opportunity_expansion",
     "tier": "nmf",
-    "description": "Terms that frame the request as opening a new possibility, pathway, experience, or aspirational horizon rather than fixing a blocked baseline condition. DO NOT tag terms centered on access repair, regulation, replacement, or pantry-style relief; headphones, breakfast, and replacement language are NOT applicable unless the essay is clearly about expansion.",
+    "description": "Terms that frame the request as opening a new possibility, pathway, experience, or aspirational horizon rather than fixing a blocked baseline condition. This category is about opening a concrete path or activity, not primarily about delight or wonder. DO NOT tag terms centered on access repair, regulation, replacement, or pantry-style relief; headphones, breakfast, and replacement language are NOT applicable unless the essay is clearly about expansion.",
     "examples": [
       "explore",
       "enrichment",
@@ -133,7 +133,7 @@
       "studio",
       "field trip",
       "innovation",
-      "discovery"
+      "new opportunity"
     ],
     "counter_examples": [
       "headphones",
@@ -154,15 +154,15 @@
     "tier": "nmf",
     "description": "Terms that portray students through capability, pride, dignity, voice, or strength even when need is present. DO NOT tag vocabulary that foregrounds embarrassment, exposure, or fragility as the main student portrait; crisis, trauma, or helplessness terms are NOT applicable unless they are paired with an overt strength-first framing.",
     "examples": [
-      "pride",
       "resilient",
       "leadership",
       "self advocacy",
       "capable",
       "strengths",
       "problem solving",
-      "confidence",
-      "creative",
+      "determined",
+      "competence",
+      "resourceful",
       "potential"
     ],
     "counter_examples": [
@@ -170,9 +170,9 @@
       "crisis",
       "fragile",
       "embarrassed",
-      "hygiene",
-      "hungry",
-      "trauma",
+      "identity texts",
+      "mirror books",
+      "representation",
       "survival"
     ],
     "target_coverage_pct": "18-30%",
@@ -191,7 +191,7 @@
       "fidget",
       "decompress",
       "reduce anxiety",
-      "self regulate",
+      "quiet corner",
       "movement break",
       "flexible seating"
     ],
@@ -221,9 +221,9 @@
       "nourished",
       "regulated",
       "ready for instruction",
-      "attentive",
-      "focused learning",
-      "calm body"
+      "settled",
+      "ready for the lesson",
+      "able to engage"
     ],
     "counter_examples": [
       "standards",
@@ -278,7 +278,7 @@
       "immediate",
       "pressing",
       "timely",
-      "critical",
+      "right now",
       "asap",
       "acute",
       "shortfall",
@@ -313,7 +313,7 @@
       "lifelong",
       "preparedness",
       "readiness",
-      "tomorrow"
+      "next stage"
     ],
     "counter_examples": [
       "urgent",
@@ -356,7 +356,7 @@
       "assessment"
     ],
     "target_coverage_pct": "15-25%",
-    "contrast_with": "none",
+    "contrast_with": "underfunding_inequity_context",
     "rationale": "Care closets, snack carts, and winter-clothing projects should score high; multicultural library refreshes and STEM lab upgrades should score low. This signal should rise during inflation spikes, winter quarters, and post-holiday hardship periods."
   },
   {
@@ -386,24 +386,24 @@
       "belonging"
     ],
     "target_coverage_pct": "18-30%",
-    "contrast_with": "none",
+    "contrast_with": "belonging_identity_affirmation",
     "rationale": "Adaptive-seating, speech-language, and bilingual-access projects should score high; heritage-book collections and student-storytelling anthologies should score low. The signal should strengthen in inclusion-focused years and around multilingual-access pushes."
   },
   {
     "category": "consumables_replenishment",
     "tier": "nmf",
-    "description": "Terms that frame the request as restocking or repeatedly replacing items that get used up, worn down, eaten, or distributed one time. DO NOT tag durable build-out or fixed-installation language; furniture, lab stations, and stage platforms are NOT applicable unless the request is mainly about replenishment.",
+    "description": "Terms that frame the request as restocking or repeatedly replacing items that get used up, run out, are depleted, eaten, or distributed one time. DO NOT tag durable build-out or fixed-installation language; furniture, lab stations, and stage platforms are NOT applicable unless the request is mainly about replenishment.",
     "examples": [
       "restock",
       "replenish",
       "refill",
-      "consumables",
-      "supplies",
-      "paper",
+      "used up",
+      "run out",
+      "depleted",
+      "single-use",
       "snacks",
       "batteries",
-      "hygiene kits",
-      "art supplies"
+      "hygiene kits"
     ],
     "counter_examples": [
       "furniture",
@@ -452,7 +452,7 @@
   {
     "category": "triage_repair",
     "tier": "analysis",
-    "description": "Terms that describe patching, fixing, stabilizing, or repairing something already damaged, broken, depleted, or failing. Boundary: unlike episodic_disruption_recovery, this category is about the request type, not the temporal shape of the need. DO NOT tag general disruption or recovery words like pandemic or reopening unless the term itself names repair or patching.",
+    "description": "Terms that describe patching, fixing, stabilizing, or repairing something already damaged, broken, depleted, or failing. Boundary: unlike episodic_disruption_recovery, this category is about the request type, not the temporal shape of the need. If the item is described as broken, damaged, or failing now, prefer this category; if the replacement is framed as routine upkeep or refresh, prefer maintenance_replacement. DO NOT tag general disruption or recovery words like pandemic or reopening unless the term itself names repair or patching.",
     "examples": [
       "repair",
       "replace",
@@ -476,13 +476,13 @@
       "learning loss"
     ],
     "target_coverage_pct": "8-15%",
-    "contrast_with": "new_program_launch",
+    "contrast_with": "maintenance_replacement",
     "rationale": "Broken-device replacements and worn-furniture fixes should score high; robotics-club launches and new greenhouse builds should score low. This should rise in quarters following disruptions and in schools with aging equipment, but remain lower in expansion-heavy periods."
   },
   {
     "category": "maintenance_replacement",
     "tier": "analysis",
-    "description": "Terms that emphasize upkeep, routine replacement, or ongoing maintenance of existing materials rather than introducing something new. DO NOT tag launch, pilot, or first-time program language; makerspace, inaugural, and startup terms are NOT applicable unless the request is clearly about maintaining an existing setup.",
+    "description": "Terms that emphasize upkeep, routine replacement, or ongoing maintenance of existing materials rather than introducing something new. If the replacement is framed as routine refresh, lifecycle upkeep, or scheduled renewal, prefer this category; if the item is described as broken, damaged, or failing now, prefer triage_repair. DO NOT tag launch, pilot, or first-time program language; makerspace, inaugural, and startup terms are NOT applicable unless the request is clearly about maintaining an existing setup.",
     "examples": [
       "replacement",
       "maintenance",
@@ -506,7 +506,7 @@
       "kickoff"
     ],
     "target_coverage_pct": "6-12%",
-    "contrast_with": "new_program_launch",
+    "contrast_with": "triage_repair",
     "rationale": "Replacement Chromebook carts and worn-library-furniture refreshes should score high; first-time podcast studios and new debate teams should score low. This framing should be steadier over time, with small rises after heavy-use pandemic years."
   },
   {
@@ -523,7 +523,7 @@
       "personally purchased",
       "teacher bought",
       "scrounge",
-      "share"
+      "out of pocket"
     ],
     "counter_examples": [
       "restock",
@@ -546,13 +546,13 @@
     "examples": [
       "essential",
       "basic",
-      "bare",
-      "minimum",
+      "bare minimum",
       "enough",
-      "fundamental",
-      "core",
+      "just enough",
+      "to get by",
       "starter",
       "baseline",
+      "workable",
       "necessities"
     ],
     "counter_examples": [
@@ -632,18 +632,18 @@
   {
     "category": "belonging_identity_affirmation",
     "tier": "analysis",
-    "description": "Terms that frame the request around cultural reflection, identity affirmation, mirrors, voice, heritage, or students seeing themselves represented. Boundary: unlike inclusion_accommodation_framing, this category is about representation and voice, not disability logistics, translation, or participation access. DO NOT tag assistive, bilingual-access, or adapted-instruction terms unless the term itself signals identity reflection.",
+    "description": "Terms that frame the request around cultural reflection, identity affirmation, mirrors, voice, heritage, or students seeing themselves represented. This category is about relational belonging, affirmation, and being seen, not primarily the curriculum-materials dimension of representation. Boundary: unlike inclusion_accommodation_framing, this category is about representation and voice, not disability logistics, translation, or participation access. DO NOT tag assistive, bilingual-access, or adapted-instruction terms unless the term itself signals identity reflection.",
     "examples": [
       "belonging",
       "identity",
       "student voice",
       "home language",
       "affirmation",
-      "pride",
       "visibility",
       "self worth",
       "seen",
-      "recognized"
+      "recognized",
+      "included"
     ],
     "counter_examples": [
       "accommodation",
@@ -652,11 +652,11 @@
       "captioned",
       "assistive technology",
       "wheelchair",
-      "adapted",
-      "speech language"
+      "capable",
+      "resilient"
     ],
     "target_coverage_pct": "8-16%",
-    "contrast_with": "none",
+    "contrast_with": "representation_cultural_reflection",
     "rationale": "Heritage-book collections and student-storytelling anthologies should score high; speech-language devices and translated directions should score low. This should rise with culturally responsive literacy waves and identity-focused curriculum periods."
   },
   {
@@ -726,14 +726,14 @@
     "examples": [
       "embarrassed",
       "discreet",
-      "confidence",
-      "dignity",
-      "private",
-      "peer confidence",
       "self conscious",
-      "appearance",
-      "feel proud",
-      "social comfort"
+      "left out",
+      "fit in",
+      "stand out",
+      "private",
+      "peer judgment",
+      "social comfort",
+      "appearance"
     ],
     "counter_examples": [
       "benchmark",
@@ -796,14 +796,14 @@
       "steady presence"
     ],
     "counter_examples": [
-      "standards",
-      "curriculum",
+      "program design",
+      "implementation plan",
       "pilot",
-      "benchmark",
-      "innovation",
-      "launch",
-      "rubric",
-      "assessment"
+      "initiative",
+      "data driven",
+      "rollout",
+      "assessment strategy",
+      "curriculum map"
     ],
     "target_coverage_pct": "6-12%",
     "contrast_with": "none",
@@ -822,8 +822,8 @@
       "centers",
       "hallway",
       "morning meeting",
-      "small moment",
-      "classroom scene"
+      "during centers",
+      "each morning"
     ],
     "counter_examples": [
       "sensory",
@@ -844,15 +844,15 @@
     "tier": "analysis",
     "description": "Terms that rely on witnessed classroom observation, teacher testimony, or direct lived evidence rather than formal metrics or external justification. DO NOT tag standards, benchmark, or research terms unless the vocabulary itself signals witnessing or testimony.",
     "examples": [
-      "noticed",
-      "observed",
-      "witnessed",
-      "daily observation",
-      "classroom reality",
-      "lived experience",
+      "I notice",
+      "every day I see",
+      "I have watched",
+      "in my classroom",
+      "each week I notice",
+      "I see firsthand",
+      "I observed",
+      "I watched",
       "daily patterns",
-      "teacher observation",
-      "firsthand",
       "recurring pattern"
     ],
     "counter_examples": [
@@ -941,7 +941,7 @@
       "application",
       "reinforcement",
       "sequenced",
-      "directly",
+      "so that students can",
       "strategy use",
       "measurable outcome"
     ],
@@ -962,18 +962,18 @@
   {
     "category": "inquiry_exploration",
     "tier": "analysis",
-    "description": "Terms that frame learning as questioning, investigating, experimenting, or open-ended discovery rather than routine drill or repetition. DO NOT tag remediation or benchmark language; intervention, decodable, and proficiency terms are NOT applicable unless the vocabulary clearly signals inquiry.",
+    "description": "Terms that frame learning as questioning, investigating, experimenting, or open-ended discovery rather than routine drill or repetition. Boundary: wonder in a question, investigation, or hypothesis-building context belongs here; wonder used mainly as delight, magic, or inspiration belongs more naturally in joy_possibility_appeal. DO NOT tag remediation or benchmark language; intervention, decodable, and proficiency terms are NOT applicable unless the vocabulary clearly signals inquiry.",
     "examples": [
       "inquiry",
       "investigate",
       "experiment",
       "questioning",
       "hypothesis",
-      "wonder",
       "open ended",
-      "investigation",
       "discover",
-      "problem solving"
+      "explore questions",
+      "student inquiry",
+      "investigation"
     ],
     "counter_examples": [
       "intervention",
@@ -1022,18 +1022,18 @@
   {
     "category": "collaborative_social_learning",
     "tier": "analysis",
-    "description": "Terms that frame the request around teamwork, peer interaction, dialogue, or shared production rather than solitary individualized work. DO NOT tag subgroup labels or individual accommodation language; one-to-one, intervention, and adaptive terms are NOT applicable unless the term explicitly names collaborative learning.",
+    "description": "Terms that frame the request around teamwork, peer interaction, dialogue, or shared production rather than solitary individualized work. This category is about collaborative learning as a pedagogical structure, not just interpersonal skill-building. DO NOT tag subgroup labels or individual accommodation language; one-to-one, intervention, and adaptive terms are NOT applicable unless the term explicitly names collaborative learning.",
     "examples": [
       "collaboration",
-      "peer",
+      "peer learning",
       "teamwork",
       "discussion",
       "cooperative",
-      "group work",
-      "social skills",
-      "shared",
-      "dialogue",
-      "together"
+      "partner work",
+      "group discussion",
+      "joint project",
+      "co-constructed",
+      "peer interaction"
     ],
     "counter_examples": [
       "individualized",
@@ -1058,12 +1058,12 @@
       "design",
       "compose",
       "perform",
-      "build",
-      "publish",
+      "illustrate",
+      "author",
       "craft",
-      "produce",
-      "self expression",
-      "artistic"
+      "original work",
+      "student-made",
+      "self expression"
     ],
     "counter_examples": [
       "decodable",
@@ -1145,28 +1145,28 @@
     "description": "Terms that link materials to social-emotional skill-building, self-management, empathy, coping, or classroom relationship skills rather than academic mastery alone. DO NOT tag broad readiness or comfort vocabulary without SEL language; breakfast, warm clothing, and quiet are NOT applicable unless the term itself points to SEL development.",
     "examples": [
       "social emotional",
-      "self regulation",
       "coping",
       "empathy",
       "mindfulness",
       "self awareness",
-      "de-escalation",
       "relationship skills",
       "emotional literacy",
-      "co-regulation"
+      "co-regulation",
+      "reflection",
+      "conflict resolution"
     ],
     "counter_examples": [
       "breakfast",
       "winter coat",
       "quiet",
       "comfortable",
-      "rested",
-      "benchmark",
-      "phonics",
-      "proficiency"
+      "trauma",
+      "grief",
+      "counseling",
+      "diagnosis"
     ],
     "target_coverage_pct": "8-15%",
-    "contrast_with": "none",
+    "contrast_with": "mental_health_wellbeing_support",
     "rationale": "SEL curriculum kits and calm-space reflection tools should score high; breakfast carts and phonics intervention sets should score low. This should rise after 2020 as schools foreground mental health and SEL."
   },
   {
@@ -1232,7 +1232,7 @@
   {
     "category": "joy_possibility_appeal",
     "tier": "analysis",
-    "description": "Terms that persuade through delight, inspiration, wonder, celebration, or excitement about what becomes possible. DO NOT tag prevention or harm-avoidance language; missed, urgent, and falling behind are NOT applicable unless the main force of the term is positive possibility rather than averting loss.",
+    "description": "Terms that persuade through delight, inspiration, wonder, celebration, or excitement about what becomes possible. DO NOT tag prevention or harm-avoidance language, and DO NOT tag concrete opportunity-opening language unless the persuasive force is emotional uplift rather than access to a new pathway.",
     "examples": [
       "joy",
       "wonder",
@@ -1242,7 +1242,7 @@
       "magic",
       "inspire",
       "exciting",
-      "possibility",
+      "imagination",
       "dream big"
     ],
     "counter_examples": [
@@ -1442,32 +1442,32 @@
   {
     "category": "trend_responsive_framing",
     "tier": "analysis",
-    "description": "Terms that hook the request to a current fad, platform trend, buzzword, or newly salient discourse rather than a stable instructional need. DO NOT tag long-standing curricular language; standards, phonics, and read-aloud terms are NOT applicable unless the vocabulary clearly points to a trend-responsive frame.",
+    "description": "Terms that hook the request to a current fad, platform trend, buzzword, or newly salient discourse rather than a stable instructional need. DO NOT tag long-standing curricular or infrastructure language unless the vocabulary clearly points to a recent trend cycle or platform-driven frame.",
     "examples": [
       "booktok",
-      "ai",
+      "tiktok",
+      "viral",
       "esports",
-      "podcast",
-      "makerspace",
-      "coding",
-      "virtual reality",
-      "stem challenge",
-      "career readiness",
-      "3d printing"
+      "chatgpt",
+      "generative ai",
+      "gemini",
+      "copilot",
+      "notebooklm",
+      "social media trend"
     ],
     "counter_examples": [
       "phonics",
       "benchmark",
       "read aloud",
       "manipulatives",
-      "worksheet",
+      "makerspace",
+      "coding",
       "winter coat",
-      "laundry",
-      "breakfast"
+      "pantry"
     ],
     "target_coverage_pct": "4-8%",
     "contrast_with": "none",
-    "rationale": "AI-literacy prompts, esports equipment, and BookTok-inspired library requests should score high; steady phonics and pantry projects should score low. This should vary sharply by year, especially after 2023 for AI-related terms."
+    "rationale": "Social-platform-inspired reading requests, esports equipment, and current AI-product language should score high; stable phonics, coding, makerspace, and pantry-style projects should score low. Terms that appear here may also appear in the AI subcategories; the signal here is trend-framing and recency anchoring, not topic exclusivity."
   },
   {
     "category": "deadline_window_pressure",
@@ -1526,7 +1526,7 @@
       "deodorant"
     ],
     "target_coverage_pct": "6-12%",
-    "contrast_with": "none",
+    "contrast_with": "household_basic_needs_spillover",
     "rationale": "Title I classroom technology requests and equity-framed library access projects should score high; pantry snack carts and hygiene closets should score low. This should rise during equity-focused discourse and in years of stronger public attention to the digital divide."
   },
   {
@@ -1535,15 +1535,15 @@
     "description": "Terms that root the request in a specific local setting, neighborhood, region, or place-based circumstance rather than an abstract classroom anywhere. DO NOT tag generic culture or equity words without place reference; identity, fairness, and belonging are NOT applicable unless the vocabulary points to a concrete locale or local condition.",
     "examples": [
       "neighborhood",
+      "city block",
+      "this zip code",
+      "apartment complex",
+      "our block",
+      "local history",
+      "hometown",
       "reservation",
       "farm town",
-      "coastal",
-      "desert",
-      "mountain",
-      "city block",
-      "bayou",
-      "local history",
-      "hometown"
+      "bayou"
     ],
     "counter_examples": [
       "equity",
@@ -1594,16 +1594,17 @@
     "tier": "analysis",
     "description": "Terms that frame the request around shielding students from harm, hazard, exposure, or unsafe environments at the classroom or institutional level. DO NOT tag sensory-calming or SEL vocabulary unless the term points to protection from external harm; fidget, mindfulness, and cozy are NOT applicable on their own.",
     "examples": [
-      "safe",
       "secure",
       "shield",
       "hazard",
+      "hazard-free",
       "clean air",
       "sanitation",
       "air quality",
       "emergency",
       "lockdown",
-      "protection"
+      "protection",
+      "physical safety"
     ],
     "counter_examples": [
       "fidget",
@@ -1622,7 +1623,7 @@
   {
     "category": "representation_cultural_reflection",
     "tier": "analysis",
-    "description": "Terms that stress culturally reflective materials, mirror texts, heritage visibility, or students seeing their communities represented in the curriculum. DO NOT tag disability accommodation or simple place reference; translation, wheelchair, and rural are NOT applicable unless the vocabulary itself signals cultural reflection.",
+    "description": "Terms that stress culturally reflective materials, mirror texts, heritage visibility, or students seeing their communities represented in the curriculum. This category is about curriculum materials and content reflection, not the broader relational feeling of belonging in the classroom. DO NOT tag disability accommodation or simple place reference; translation, wheelchair, and rural are NOT applicable unless the vocabulary itself signals cultural reflection.",
     "examples": [
       "mirror books",
       "representation",
@@ -1646,7 +1647,7 @@
       "winter coat"
     ],
     "target_coverage_pct": "6-12%",
-    "contrast_with": "none",
+    "contrast_with": "belonging_identity_affirmation",
     "rationale": "Multicultural library requests and identity-text collections should score high; adaptive seating and pantry restock essays should score low. This should rise with culturally responsive teaching waves and publishing trends."
   },
   {
@@ -1682,18 +1683,18 @@
   {
     "category": "system_bundle_request",
     "tier": "analysis",
-    "description": "Terms that frame the request as an interconnected set of items or a full system rather than a single keystone item. DO NOT tag lone flagship objects; microscope, rug, or printer are NOT applicable unless the vocabulary makes clear the ask is a coordinated bundle.",
+    "description": "Terms that frame the request as an interconnected set of items or a full system rather than a single keystone item. DO NOT tag lone flagship objects, or generic phrases like set or collection on their own; microscope, rug, or printer are NOT applicable unless the vocabulary makes clear the ask is a coordinated bundle or classroom-wide package.",
     "examples": [
-      "set",
-      "bundle",
+      "classroom set",
       "full kit",
-      "class set",
+      "complete package",
+      "coordinated bundle",
+      "multi-item",
       "complete system",
-      "collection",
-      "package",
-      "series",
+      "package deal",
       "multiple stations",
-      "suite"
+      "suite",
+      "starter bundle"
     ],
     "counter_examples": [
       "microscope",
@@ -1720,10 +1721,10 @@
       "wifi",
       "software",
       "licensing",
-      "air purifier",
       "cleaning",
       "maintenance supplies",
-      "bandwidth"
+      "bandwidth",
+      "device management"
     ],
     "counter_examples": [
       "robot",
@@ -1742,7 +1743,7 @@
   {
     "category": "student_owned_personal_use",
     "tier": "analysis",
-    "description": "Terms that describe items kept by individual students for personal use rather than shared classroom resources. DO NOT tag shared stations or communal furniture; class set, makerspace, and library are NOT applicable unless the term explicitly signals individual ownership or take-home assignment.",
+    "description": "Terms that describe items kept by individual students for personal use rather than shared classroom resources. DO NOT tag shared stations or communal furniture; class set, makerspace, and library are NOT applicable unless the term explicitly signals individual ownership or take-home assignment. DO NOT tag regulation or sensory tools whose primary frame is calming rather than personal ownership.",
     "examples": [
       "personal",
       "individual",
@@ -1752,8 +1753,8 @@
       "backpack",
       "hygiene kit",
       "notebook",
-      "headphones",
-      "personal supplies"
+      "personal supplies",
+      "individual materials"
     ],
     "counter_examples": [
       "class set",
@@ -1802,7 +1803,7 @@
   {
     "category": "comfort_environment_atmosphere",
     "tier": "analysis",
-    "description": "Terms that frame the request around the feel of the room\u2014coziness, ambiance, warmth, softness, or welcoming atmosphere\u2014rather than a direct instructional mechanism. DO NOT tag explicit sensory-regulation or causal-mechanism language; self regulate, used for, and benchmark are NOT applicable unless the term is mainly about atmosphere.",
+    "description": "Terms that frame the request around the feel of the room—coziness, ambiance, warmth, softness, or welcoming atmosphere—rather than a direct instructional mechanism. DO NOT tag explicit sensory-regulation or causal-mechanism language; self regulate, used for, and benchmark are NOT applicable unless the term is mainly about atmosphere.",
     "examples": [
       "cozy",
       "welcoming",
@@ -1837,13 +1838,13 @@
       "program",
       "initiative",
       "academy",
-      "lab",
-      "studio",
+      "media lab",
+      "innovation lab",
+      "dedicated lab space",
       "specialized",
       "expansion",
       "curriculum set",
-      "cohort",
-      "signature"
+      "cohort"
     ],
     "counter_examples": [
       "basic",
@@ -1888,5 +1889,567 @@
     "target_coverage_pct": "6-12%",
     "contrast_with": "triage_repair",
     "rationale": "First-time podcast studios and inaugural gardening clubs should score high; broken-device replacements and worn-furniture refreshes should score low. This should be more common in post-crisis expansion periods than in disruption-heavy quarters."
+  },
+  {
+    "category": "foundational_communication_literacy",
+    "tier": "analysis",
+    "description": "Terms that frame the request around building language, listening, speaking, early literacy, vocabulary, comprehension, or expressive communication as durable capability. DO NOT tag generic book or reading requests unless the essay explicitly emphasizes communication or literacy development.",
+    "examples": [
+      "oral language",
+      "vocabulary",
+      "listening skills",
+      "speaking",
+      "conversation",
+      "storytelling",
+      "expressive language",
+      "reading foundations",
+      "communication skills",
+      "comprehension"
+    ],
+    "counter_examples": [
+      "robotics",
+      "snacks",
+      "replacement",
+      "field trip",
+      "winter coat",
+      "fidget",
+      "showcase",
+      "breakfast"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "catch_up_remediation",
+    "rationale": "This captures broad communication-capacity building, especially in early childhood and elementary projects, rather than narrow remediation alone."
+  },
+  {
+    "category": "self_regulation_executive_function",
+    "tier": "analysis",
+    "description": "Terms that frame the request around planning, sustained attention, persistence, organization, executive function, routines, or task completion as durable self-management skills. DO NOT tag generic calm, comfort, sensory-regulation, or mental-health language unless the essay explicitly emphasizes executive-skill building rather than immediate relief or emotional steadiness.",
+    "examples": [
+      "executive function",
+      "sustained attention",
+      "task initiation",
+      "persistence",
+      "task completion",
+      "organization",
+      "planning",
+      "impulse control",
+      "routines",
+      "follow through"
+    ],
+    "counter_examples": [
+      "calming",
+      "decompress",
+      "safe",
+      "reduce anxiety",
+      "wellness",
+      "trauma",
+      "cozy",
+      "soft lighting"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "regulation_safety_need",
+    "rationale": "This should catch durable self-management and work-habit language such as planning, sustained attention, persistence, and follow-through, rather than generic calm-corner or emotional-comfort framing alone."
+  },
+  {
+    "category": "collaboration_interpersonal_effectiveness",
+    "tier": "analysis",
+    "description": "Terms that frame the request around building interpersonal effectiveness such as cooperation, listening, discussion norms, conflict navigation, or working productively with others. DO NOT tag essays that merely use group work, shared tables, or collaborative formats unless the essay explicitly emphasizes interpersonal skill development.",
+    "examples": [
+      "cooperation",
+      "listening to others",
+      "discussion skills",
+      "relationship skills",
+      "peer communication",
+      "conflict resolution",
+      "teamwork skills",
+      "respectful dialogue",
+      "working productively with others",
+      "partner talk"
+    ],
+    "counter_examples": [
+      "group work",
+      "shared table",
+      "collaboration table",
+      "makerspace",
+      "project based",
+      "cooperative seating",
+      "podcast",
+      "lab station"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "collaborative_social_learning",
+    "rationale": "This is the interpersonal-skill version of collaboration and should fire when the essay stresses empathy, listening, dialogue, or teamwork habits rather than collaborative classroom structure alone."
+  },
+  {
+    "category": "agency_independence_responsibility",
+    "tier": "analysis",
+    "description": "Terms that frame the request around independence, initiative, reliability, ownership, responsibility, or follow-through as durable student habits. DO NOT tag generic choice, personalization, or student-voice language unless the essay explicitly emphasizes accountability, self-management, or dependable action.",
+    "examples": [
+      "independence",
+      "responsibility",
+      "ownership",
+      "initiative",
+      "accountability",
+      "self management",
+      "follow through",
+      "reliable habits",
+      "student responsibility",
+      "independent work habits"
+    ],
+    "counter_examples": [
+      "choice",
+      "choice board",
+      "student voice",
+      "personalized",
+      "self expression",
+      "agency",
+      "creative freedom",
+      "student led"
+    ],
+    "target_coverage_pct": "6-12%",
+    "contrast_with": "student_choice_autonomy",
+    "rationale": "This should catch work-habit language about responsibility, initiative, and follow-through, not broad autonomy or personalization language on its own."
+  },
+  {
+    "category": "problem_solving_adaptive_thinking",
+    "tier": "analysis",
+    "description": "Terms that frame the request around reasoning, inquiry, experimentation, debugging, decision-making, or flexible problem-solving as transferable skill-building. DO NOT tag rote practice or remediation unless the essay emphasizes applied thinking.",
+    "examples": [
+      "problem solving",
+      "critical thinking",
+      "reasoning",
+      "troubleshooting",
+      "experimentation",
+      "decision making",
+      "adaptable thinking",
+      "debugging",
+      "analysis",
+      "strategy"
+    ],
+    "counter_examples": [
+      "worksheet",
+      "practice test",
+      "phonics",
+      "benchmark",
+      "snacks",
+      "winter coat",
+      "restock",
+      "replacement"
+    ],
+    "target_coverage_pct": "8-15%",
+    "contrast_with": "inquiry_exploration",
+    "rationale": "This keeps the transferable-thinking lane visible even when the project is not framed as open-ended inquiry."
+  },
+  {
+    "category": "applied_production_real_world_execution",
+    "tier": "analysis",
+    "description": "Terms that frame the request around completing deliverables, producing work products, executing multi-step projects, or preparing artifacts for practical use, portfolios, clients, or presentation. DO NOT tag generic creativity or public-audience language unless the essay explicitly emphasizes workflow, completion, execution, or concrete outputs.",
+    "examples": [
+      "deliverable",
+      "work product",
+      "portfolio",
+      "project completion",
+      "final product",
+      "client brief",
+      "presentation deck",
+      "prototype",
+      "execution",
+      "production workflow"
+    ],
+    "counter_examples": [
+      "self expression",
+      "artistic",
+      "creative",
+      "audience",
+      "publish",
+      "performance",
+      "showcase",
+      "celebration"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "authentic_audience_real_world",
+    "rationale": "This should catch project execution and concrete output language—artifacts, deliverables, portfolios, prototypes, and workflow—rather than general creativity or public-audience framing alone."
+  },
+  {
+    "category": "career_identity_exposure",
+    "tier": "analysis",
+    "description": "Terms that frame the request around helping students imagine, explore, or understand jobs, professions, industries, or future occupational roles. DO NOT tag vague future-readiness language unless the essay explicitly references careers or workplaces.",
+    "examples": [
+      "career exploration",
+      "jobs",
+      "professions",
+      "industry",
+      "workplace",
+      "future careers",
+      "career awareness",
+      "occupations",
+      "entrepreneurship",
+      "career role models"
+    ],
+    "counter_examples": [
+      "future ready",
+      "tomorrow",
+      "college",
+      "preparedness",
+      "showcase",
+      "innovation",
+      "snacks",
+      "replacement"
+    ],
+    "target_coverage_pct": "3-8%",
+    "contrast_with": "future_preparation",
+    "rationale": "This is the clearest direct workforce-facing category and should catch explicit occupational imagination or exposure."
+  },
+  {
+    "category": "technical_pathway_skill_building",
+    "tier": "analysis",
+    "description": "Terms that frame the request around CTE, pathway-specific tools, technical training, certifications, trade skills, or industry-standard preparation. DO NOT tag general STEM or enrichment language unless the essay is clearly pathway- or skill-credential-oriented.",
+    "examples": [
+      "cte",
+      "career pathway",
+      "technical training",
+      "certification",
+      "trade skills",
+      "industry standard",
+      "apprenticeship",
+      "employability skills",
+      "work based learning",
+      "credential"
+    ],
+    "counter_examples": [
+      "robotics",
+      "makerspace",
+      "science lab",
+      "future ready",
+      "innovation",
+      "field trip",
+      "snacks",
+      "replacement"
+    ],
+    "target_coverage_pct": "2-6%",
+    "contrast_with": "career_identity_exposure",
+    "rationale": "This keeps traditional workforce-development language visible without collapsing the broader life-course skill concept into CTE only."
+  },
+  {
+    "category": "ai_literacy_responsible_use",
+    "tier": "analysis",
+    "description": "Terms that frame the request around teaching students what AI is, how generative AI works, how to use it responsibly, and how to evaluate AI-generated content critically. DO NOT tag generic coding, robotics, or device language unless the essay explicitly centers AI, chatbots, LLMs, prompting, or responsible-use concerns.",
+    "examples": [
+      "artificial intelligence",
+      "ai literacy",
+      "generative ai",
+      "genai",
+      "large language model",
+      "llm",
+      "ai chatbot",
+      "chatbot",
+      "prompting",
+      "prompt engineering",
+      "responsible ai",
+      "ai ethics",
+      "bias in ai",
+      "hallucination",
+      "evaluate ai output",
+      "deepfake",
+      "misinformation",
+      "academic integrity"
+    ],
+    "counter_examples": [
+      "robotics",
+      "coding",
+      "3d printing",
+      "chromebook",
+      "internet access",
+      "makerspace",
+      "virtual reality",
+      "digital citizenship"
+    ],
+    "target_coverage_pct": "2-6%",
+    "contrast_with": "trend_responsive_framing",
+    "rationale": "This should catch explicit learning-about-AI requests, especially around chatbot use, prompting, critical evaluation, and responsible classroom use."
+  },
+  {
+    "category": "ai_enabled_learning_tools",
+    "tier": "analysis",
+    "description": "Terms that frame the request around classroom use of AI-powered tools, assistants, tutoring, feedback, translation, accessibility, or teacher workflow support. DO NOT tag general software, adaptive programs, or edtech language unless the essay explicitly names AI-enabled functionality or a clearly AI-native tool.",
+    "examples": [
+      "ai tool",
+      "ai powered",
+      "ai assistant",
+      "ai tutor",
+      "ai feedback",
+      "ai writing support",
+      "ai translation",
+      "ai summarizer",
+      "ai rubric generator",
+      "ai lesson planning",
+      "classroom ai",
+      "chatgpt",
+      "copilot",
+      "gemini",
+      "notebooklm",
+      "khanmigo",
+      "magicschool"
+    ],
+    "counter_examples": [
+      "software",
+      "adaptive program",
+      "chromebook",
+      "tablet",
+      "robotics",
+      "coding",
+      "internet access",
+      "digital learning"
+    ],
+    "target_coverage_pct": "1-4%",
+    "contrast_with": "ai_literacy_responsible_use",
+    "rationale": "This separates learning with AI tools from learning about AI as a topic, and should improve recall where teachers name products rather than the term AI itself."
+  },
+  {
+    "category": "ai_creative_expression_production",
+    "tier": "analysis",
+    "description": "Terms that frame the request around using AI for making, designing, composing, generating, or producing student work. DO NOT tag general arts, media, design, or tech-production language unless the essay explicitly centers AI-assisted creation or generation.",
+    "examples": [
+      "ai art",
+      "ai music",
+      "ai design",
+      "ai storytelling",
+      "ai image generation",
+      "text to image",
+      "image generator",
+      "generate ideas with ai",
+      "creative ai",
+      "ai media production",
+      "ai video",
+      "ai animation"
+    ],
+    "counter_examples": [
+      "podcast",
+      "publishing",
+      "camera",
+      "paint set",
+      "studio",
+      "robotics",
+      "makerspace",
+      "3d printer"
+    ],
+    "target_coverage_pct": "1-4%",
+    "contrast_with": "applied_production_real_world_execution",
+    "rationale": "This keeps AI-assisted creative production distinct from general making, design, or media-production requests."
+  },
+  {
+    "category": "ai_career_future_of_work_awareness",
+    "tier": "analysis",
+    "description": "Terms that frame the request around helping students understand how AI affects jobs, industries, workplace skills, employability, or the future of work. DO NOT tag general career or future-readiness language unless the essay explicitly links it to AI.",
+    "examples": [
+      "future of work",
+      "ai careers",
+      "jobs and ai",
+      "ai in the workplace",
+      "workforce and ai",
+      "industry uses of ai",
+      "career impacts of ai",
+      "ai job skills",
+      "workplace automation",
+      "automation and jobs",
+      "how ai changes work",
+      "ai workforce readiness"
+    ],
+    "counter_examples": [
+      "career exploration",
+      "future ready",
+      "college",
+      "preparedness",
+      "entrepreneurship",
+      "robotics",
+      "coding",
+      "internship"
+    ],
+    "target_coverage_pct": "1-3%",
+    "contrast_with": "career_identity_exposure",
+    "rationale": "This should catch AI-specific workforce framing without absorbing broader career-development language."
+  },
+  {
+    "category": "coding_computational_thinking_foundation",
+    "tier": "analysis",
+    "description": "Terms that frame the request around coding, sequencing, logic, debugging, algorithms, or computational thinking as skill-building, but without explicit AI language. DO NOT tag essays that explicitly center AI, chatbots, LLMs, or generative tools; those belong in the AI categories instead.",
+    "examples": [
+      "coding",
+      "programming",
+      "computer science",
+      "computational thinking",
+      "algorithms",
+      "sequencing",
+      "debugging",
+      "logic",
+      "block coding",
+      "scratch",
+      "javascript",
+      "python"
+    ],
+    "counter_examples": [
+      "artificial intelligence",
+      "generative ai",
+      "chatgpt",
+      "copilot",
+      "gemini",
+      "prompting",
+      "ai literacy",
+      "ai tutor"
+    ],
+    "target_coverage_pct": "4-10%",
+    "contrast_with": "ai_literacy_responsible_use",
+    "rationale": "This is an intentional non-AI adjacency tag that can surface classrooms already working in code- and logic-based spaces that may be ripe for later AI outreach."
+  },
+  {
+    "category": "programmable_making_automation_projects",
+    "tier": "analysis",
+    "description": "Terms that frame the request around programmable creation, automation, robotics, circuits, microcontrollers, or building systems that respond to code, but without explicit AI framing. DO NOT tag essays that explicitly center AI-generated content, chatbots, or AI-specific tools.",
+    "examples": [
+      "robotics",
+      "automation",
+      "microcontroller",
+      "arduino",
+      "raspberry pi",
+      "circuits",
+      "sensors",
+      "programmable",
+      "maker coding",
+      "physical computing",
+      "coding robot",
+      "engineering design"
+    ],
+    "counter_examples": [
+      "artificial intelligence",
+      "generative ai",
+      "chatbot",
+      "large language model",
+      "llm",
+      "prompt engineering",
+      "ai image generation",
+      "khanmigo"
+    ],
+    "target_coverage_pct": "3-8%",
+    "contrast_with": "ai_enabled_learning_tools",
+    "rationale": "This is a second intentional non-AI adjacency tag that can identify teachers working in automation or programmable systems who may be open to future AI-related expansion."
+  },
+  {
+    "category": "food_insecurity_nutrition_support",
+    "tier": "analysis",
+    "description": "Terms that frame the request specifically around hunger, meals, snacks, food access, or nutrition as a barrier to learning. This is the narrow food-only cut of broader basic-needs spillover, so some overlap with household_basic_needs_spillover is intentional when the essay is primarily about food. DO NOT tag hygiene, clothing, laundry, or generic hardship unless the essay explicitly centers food or nourishment.",
+    "examples": [
+      "hunger",
+      "hungry",
+      "food insecurity",
+      "breakfast",
+      "snacks",
+      "meal",
+      "nutrition",
+      "empty stomach"
+    ],
+    "counter_examples": [
+      "laundry",
+      "hygiene",
+      "deodorant",
+      "winter coat",
+      "school supplies",
+      "underfunded",
+      "equity",
+      "replacement"
+    ],
+    "target_coverage_pct": "4-10%",
+    "contrast_with": "household_basic_needs_spillover",
+    "rationale": "This gives you a food-specific cut of the broader basic-needs spillover language already in the file. Pure food essays may intentionally co-tag with household_basic_needs_spillover, but this category should be the narrower food-only lens."
+  },
+  {
+    "category": "mental_health_wellbeing_support",
+    "tier": "analysis",
+    "description": "Terms that frame the request around stress, anxiety, trauma, grief, counseling, wellness, or emotional wellbeing beyond generic calm or sensory regulation. DO NOT tag flexible seating or fidget language unless the essay explicitly names mental-health or wellbeing support.",
+    "examples": [
+      "mental health",
+      "wellbeing",
+      "stress",
+      "anxiety",
+      "trauma",
+      "grief",
+      "wellness",
+      "counseling"
+    ],
+    "counter_examples": [
+      "self regulation",
+      "mindfulness",
+      "co-regulation",
+      "emotional literacy",
+      "quiet corner",
+      "flexible seating",
+      "breakfast",
+      "replacement"
+    ],
+    "target_coverage_pct": "3-8%",
+    "contrast_with": "regulation_sel_enablement",
+    "rationale": "This gives you an explicit mental-health lens instead of relying only on regulation or SEL proxies."
+  },
+  {
+    "category": "nature_outdoor_environmental_learning",
+    "tier": "analysis",
+    "description": "Terms that frame the request around gardens, outdoor classrooms, ecology, environmental stewardship, composting, sustainability, or learning in and through the natural environment. DO NOT tag generic enrichment or expansion language unless the essay explicitly centers outdoor or environmental learning.",
+    "examples": [
+      "garden",
+      "outdoor classroom",
+      "outdoors",
+      "outside learning",
+      "nature-based",
+      "nature walk",
+      "sustainability",
+      "composting",
+      "ecology",
+      "gardening"
+    ],
+    "counter_examples": [
+      "robotics",
+      "makerspace",
+      "podcast",
+      "studio",
+      "coding",
+      "winter coat",
+      "restock",
+      "replacement"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "opportunity_expansion",
+    "rationale": "Garden builds, outdoor science projects, and sustainability-focused requests should score high; generic enrichment, indoor lab, and replacement-supply requests should score low. This makes the outdoor and environmental cluster visible rather than absorbing it into broader opportunity framing."
+  },
+  {
+    "category": "numeracy_math_skills",
+    "tier": "analysis",
+    "description": "Terms that frame the request around number sense, math fluency, computation, fractions, place value, manipulatives, or other math-specific skill-building. DO NOT tag generic hands-on or intervention language unless the essay explicitly centers numeracy or math development.",
+    "examples": [
+      "number sense",
+      "math fluency",
+      "fractions",
+      "computation",
+      "math manipulatives",
+      "place value",
+      "math reasoning",
+      "number operations",
+      "arithmetic",
+      "problem solving in math"
+    ],
+    "counter_examples": [
+      "phonics",
+      "vocabulary",
+      "reading",
+      "writing",
+      "robotics",
+      "snacks",
+      "podcast",
+      "replacement",
+      "intervention",
+      "remediation",
+      "skill gaps"
+    ],
+    "target_coverage_pct": "5-10%",
+    "contrast_with": "catch_up_remediation",
+    "rationale": "Math-manipulative projects, number-sense interventions, and fluency-building requests should score high; literacy-focused, generic hands-on, and non-academic hardship requests should score low. This adds a clear math counterpart to the literacy and language skill lane."
   }
 ]
