@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom Compass</title>
+<link rel="icon" type="image/png" href="__FAVICON__">
+<style>
+:root {
+  --navy:     #0D1B2A;
+  --blue:     #1A6FB5;
+  --teal:     #0D8C5E;
+  --coral:    #C94C1F;
+  --amber:    #9A6200;
+  --pink:     #A83060;
+  --purple:   #5B3FA6;
+  --cyan:     #1A8FA6;
+  --gray:     #6B6B6B;
+  --lgray:    #E8E5DE;
+  --offwhite: #F7F5F0;
+  --white:    #FFFFFF;
+  --body-font:  'Helvetica Neue', Arial, sans-serif;
+  --prose-font: Georgia, 'Times New Roman', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--body-font); background: var(--offwhite); color: var(--navy); line-height: 1.5; }
+a { color: inherit; }
+button { font-family: var(--body-font); }
+
+/* ── HERO ──────────────────────────────────────────────────────────────── */
+.hero {
+  background: var(--navy);
+  padding: 1.25rem 2rem 1rem;
+  position: sticky; top: 0; z-index: 200;
+}
+.hero-inner {
+  max-width: 1200px; margin: 0 auto;
+}
+.hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; margin-bottom: 0.75rem;
+}
+.hero-left { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.hero-logo { height: 32px; width: auto; object-fit: contain; flex-shrink: 0; }
+.hero-label {
+  font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-bottom: 1px;
+}
+.hero-name {
+  font-size: 18px; font-weight: 700; color: #fff;
+  letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hero-sub { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+.hero-chips { display: flex; gap: 1.5rem; flex-shrink: 0; }
+.hero-chip { text-align: right; }
+.chip-val { display: block; font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+.chip-lbl { display: block; font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+
+/* filter context banner */
+.hero-context {
+  border-top: 0.5px solid rgba(255,255,255,0.12);
+  padding-top: 0.65rem;
+}
+.hero-context-headline {
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);
+  margin-bottom: 3px; line-height: 1.4;
+}
+.hero-context-detail {
+  font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5;
+}
+.hero-context-detail span { color: rgba(255,255,255,0.65); }
+
+/* ── CONTROLS BAR ───────────────────────────────────────────────────────── */
+.controls-bar {
+  background: var(--white); border-bottom: 0.5px solid var(--lgray);
+  padding: 0.6rem 2rem; position: sticky; top: 0; z-index: 190;
+}
+.controls-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;
+}
+.filters { display: flex; gap: 1rem; flex-wrap: wrap; flex: 1; align-items: flex-start; }
+.filter-group { display: flex; flex-direction: column; gap: 3px; }
+.filter-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray); font-weight: 700; }
+.filter-opts { display: flex; gap: 3px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 2px 8px; font-size: 10px; border: 0.5px solid var(--lgray);
+  border-radius: 20px; background: transparent; color: var(--navy);
+  cursor: pointer; transition: all 0.12s;
+}
+.filter-chip:hover { border-color: var(--blue); color: var(--blue); }
+.filter-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.reset-btn {
+  padding: 4px 10px; font-size: 10px; border: 0.5px solid var(--lgray);
+  border-radius: 4px; background: transparent; color: var(--gray);
+  cursor: pointer; align-self: flex-end; transition: all 0.12s;
+}
+.reset-btn:hover { border-color: var(--coral); color: var(--coral); }
+
+/* ── CARD GRID ──────────────────────────────────────────────────────────── */
+#card-grid {
+  max-width: 1200px; margin: 1.5rem auto 3rem;
+  padding: 0 2rem;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem; align-items: start;
+}
+
+/* ── SUMMARY CARD ───────────────────────────────────────────────────────── */
+.summary-card {
+  background: var(--white);
+  border-radius: 7px;
+  border: 0.5px solid var(--lgray);
+  border-top: 3px solid var(--cat-color, var(--blue));
+  overflow: hidden;
+  transition: box-shadow 0.18s;
+  cursor: pointer;
+}
+.summary-card:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.09); }
+.summary-card.expanded {
+  grid-column: 1 / -1;
+  cursor: default;
+}
+
+.card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 11px 13px 5px;
+}
+.card-badges { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.cat-badge {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--cat-color, var(--blue));
+}
+.section-badge {
+  font-size: 9px; color: var(--gray); background: var(--offwhite);
+  padding: 1px 5px; border-radius: 8px;
+}
+.expand-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--gray); padding: 0 0 0 8px;
+  font-size: 11px; line-height: 1; transition: color 0.12s; flex-shrink: 0;
+}
+.expand-btn:hover { color: var(--navy); }
+.expand-icon { display: inline-block; transition: transform 0.2s; }
+.summary-card.expanded .expand-icon { transform: rotate(180deg); }
+
+.card-body { padding: 3px 13px 9px; }
+.insight-title {
+  font-size: 13px; font-weight: 600; line-height: 1.45;
+  color: var(--navy); margin-bottom: 7px;
+  transition: font-size 0.2s;
+}
+.summary-card.expanded .insight-title { font-size: 16px; }
+.signal-row { display: flex; align-items: center; gap: 5px; }
+.sig-label { font-size: 9px; color: var(--gray); }
+.sig-bar { display: flex; gap: 2px; }
+.sig-block { width: 9px; height: 9px; border-radius: 1px; background: var(--lgray); }
+.sig-block.filled { background: var(--cat-color, var(--blue)); }
+.sig-pct { font-size: 9px; color: var(--gray); }
+
+.card-footer {
+  display: flex; padding: 7px 13px 11px; gap: 6px;
+  border-top: 0.5px solid var(--offwhite);
+}
+.card-stat { flex: 1; text-align: center; min-width: 0; }
+.stat-val {
+  display: block; font-size: 13px; font-weight: 700;
+  color: var(--cat-color, var(--blue)); line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stat-lbl {
+  display: block; font-size: 8px; color: var(--gray);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── DETAIL PANEL ───────────────────────────────────────────────────────── */
+.detail-panel {
+  border-top: 0.5px solid var(--lgray);
+  background: var(--white);
+}
+.detail-inner { padding: 1.5rem 1.5rem 0; }
+.detail-prose { max-width: 780px; margin-bottom: 1.25rem; }
+.prose-section { margin-bottom: 1rem; }
+.prose-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--cat-color, var(--blue)); margin-bottom: 5px;
+}
+.prose-text {
+  font-family: var(--body-font); font-size: 13px;
+  line-height: 1.72; color: #2a2a2a;
+}
+
+/* charts panel — open by default */
+.charts-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 13px; font-size: 11px; font-weight: 600;
+  color: var(--blue); background: var(--offwhite);
+  border-radius: 4px; cursor: pointer; user-select: none;
+  border: none; transition: background 0.12s; margin-bottom: 1rem;
+}
+.charts-toggle:hover { background: #ebe9e2; }
+
+.charts-panel { padding: 0 1.5rem 1rem; }
+.charts-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1rem; margin-bottom: 0.6rem;
+}
+.chart-item {
+  background: var(--offwhite); border-radius: 5px; padding: 10px 12px;
+}
+.chart-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--gray); margin-bottom: 7px;
+}
+.chart-wrap { position: relative; }
+.chart-legend {
+  display: flex; gap: 1.25rem; font-size: 10px;
+  color: var(--gray); align-items: center; flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-swatch {
+  width: 10px; height: 10px; border-radius: 2px;
+  background: var(--cat-color, var(--blue)); opacity: 0.65;
+}
+.legend-tick {
+  width: 14px; height: 2.5px; background: rgba(0,0,0,0.65); border-radius: 1px;
+}
+
+/* detail footer */
+.detail-footer {
+  padding: 1rem 1.5rem 1.25rem;
+  display: flex; justify-content: space-between;
+  align-items: flex-end; gap: 1rem; flex-wrap: wrap;
+  border-top: 0.5px solid var(--offwhite);
+}
+.trust-btn {
+  background: none; border: none; font-size: 10px;
+  color: var(--gray); cursor: pointer; padding: 0;
+}
+.trust-btn:hover { color: var(--navy); }
+.trust-panel { margin-top: 8px; }
+.trust-table { font-size: 10px; color: var(--gray); border-collapse: collapse; }
+.trust-table td { padding: 2px 12px 2px 0; vertical-align: top; }
+.trust-table td:first-child { color: var(--navy); font-weight: 600; min-width: 160px; }
+.explore-row { display: flex; gap: 8px; align-items: center; }
+.explore-btn {
+  display: inline-flex; align-items: center;
+  padding: 7px 15px; font-size: 12px; font-weight: 600;
+  background: var(--cat-color, var(--blue)); color: #fff;
+  text-decoration: none; border-radius: 4px;
+  transition: opacity 0.15s; border: none; cursor: pointer;
+}
+.explore-btn:hover { opacity: 0.85; }
+.copy-link-btn {
+  padding: 6px 13px; font-size: 11px;
+  border: 0.5px solid var(--lgray); border-radius: 4px;
+  background: transparent; color: var(--gray); cursor: pointer;
+  transition: all 0.12s;
+}
+.copy-link-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── PRESENTATION MODE ──────────────────────────────────────────────────── */
+.mode-presentation .insight-title { font-size: 15px; }
+.mode-presentation .prose-text { font-size: 16px; }
+.mode-presentation .detail-inner { padding: 2rem 2rem 0; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #card-grid { grid-template-columns: repeat(2, 1fr); padding: 0 1rem; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  #card-grid { grid-template-columns: 1fr; padding: 0 0.75rem; }
+  .hero-top { flex-wrap: wrap; gap: 0.75rem; }
+  .hero-chips { gap: 1rem; }
+  .chip-val { font-size: 18px; }
+  .controls-inner { gap: 0.75rem; }
+  .filters { gap: 0.75rem; }
+  .detail-footer { flex-direction: column; align-items: flex-start; }
+}
+
+/* ── PRINT ──────────────────────────────────────────────────────────────── */
+@media print {
+  body { background: white; font-size: 11pt; }
+  .hero {
+    position: static; background: white !important;
+    border-bottom: 1pt solid #ccc; padding: 0.5rem 0;
+  }
+  .hero-name { color: black !important; font-size: 16pt; }
+  .hero-label, .hero-sub, .chip-lbl { color: #555 !important; }
+  .chip-val { color: black !important; font-size: 16pt; }
+  .hero-context-headline { color: black !important; font-size: 10pt; }
+  .hero-context-detail { color: #555 !important; font-size: 9pt; }
+  .controls-bar { display: none !important; }
+  #card-grid { display: block; padding: 0; margin: 0.5rem 0 0; }
+  .summary-card {
+    display: block !important; page-break-inside: avoid; break-inside: avoid;
+    border: 0.5pt solid #ccc !important; border-top: 2pt solid #333 !important;
+    margin-bottom: 0.75rem; box-shadow: none !important;
+  }
+  .expand-btn, .charts-toggle, .copy-link-btn, .trust-btn,
+  .trust-panel, .reset-btn { display: none !important; }
+  .detail-panel { display: block !important; border-top: 0.5pt solid #ccc; }
+  .charts-panel { display: block !important; }
+  .charts-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .prose-text { font-size: 10pt; }
+  .cat-badge, .section-badge { color: #333 !important; }
+  .stat-val { color: #333 !important; }
+  .prose-label { color: #333 !important; }
+  .explore-btn {
+    background: transparent !important; color: black !important;
+    border: 0.5pt solid #333 !important; padding: 3px 8px; font-size: 9pt;
+  }
+  .explore-btn::after { content: " (" attr(href) ")"; font-size: 8pt; color: #555; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="hero"></header>
+<div class="controls-bar" id="controls-bar"></div>
+<main id="card-grid"></main>
+
+<script>__CHARTJS__</script>
+<script>const REPORT_DATA = __REPORT_DATA__;</script>
+<script>
+(function () {
+'use strict';
+
+const D = REPORT_DATA;
+
+// ── category color palette ──────────────────────────────────────────────
+const PALETTE = [
+  '#1A6FB5','#0D8C5E','#C94C1F','#A83060',
+  '#9A6200','#5B3FA6','#1A8FA6','#6B8C1A',
+];
+const catColors = {};
+[...new Set(D.insights.map(i => i.category_bucket))].forEach((cat, idx) => {
+  catColors[cat] = PALETTE[idx % PALETTE.length];
+});
+
+// cross-category color
+catColors['Cross-category'] = '#0D1B2A';
+
+// ── app state ───────────────────────────────────────────────────────────
+let mode       = 'send';
+let filters    = {};
+let expandedId = null;
+let chartsRendered = {};
+
+const EFS_ORDER = ['Race+Inc','Rural','Race','Inc','NonEFS'];
+
+// ── helpers ─────────────────────────────────────────────────────────────
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function displayCategory(ins) {
+  const b = ins.category_bucket;
+  if (!b || b === '' || b.toLowerCase() === 'none' || ins.is_cross) return 'Cross-category';
+  return b;
+}
+
+function sectionLabel(ins) {
+  const rs = (ins.report_section || '').toLowerCase();
+  if (rs.includes('main'))     return 'top insight';
+  if (rs.includes('appendix')) return 'secondary insight';
+  return '';
+}
+
+function catColor(ins) {
+  const cat = displayCategory(ins);
+  return catColors[cat] || catColors[ins.category_bucket] || '#1A6FB5';
+}
+
+// ── hero ────────────────────────────────────────────────────────────────
+function renderHero() {
+  const a = D.account, m = D.meta;
+  const headline = m.filter_headline || '';
+  const detail   = m.filter_detail   || '';
+
+  document.getElementById('hero').innerHTML = `
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div class="hero-left">
+          ${a.logo ? `<img class="hero-logo" src="${esc(a.logo)}" alt="${esc(a.name||'')}" onerror="this.style.display='none'">` : ''}
+          <div>
+            <div class="hero-label">Classroom Compass</div>
+            <div class="hero-name">${esc(a.name || 'Classroom Compass')}</div>
+            <div class="hero-sub">${esc(a.date || m.run_date)}</div>
+          </div>
+        </div>
+        <div class="hero-chips">
+          <div class="hero-chip">
+            <span class="chip-val">${Number(m.project_count).toLocaleString()}</span>
+            <span class="chip-lbl">projects analyzed</span>
+          </div>
+          <div class="hero-chip">
+            <span class="chip-val">${m.insight_count}</span>
+            <span class="chip-lbl">insights surfaced</span>
+          </div>
+        </div>
+      </div>
+      ${headline ? `
+      <div class="hero-context">
+        <div class="hero-context-headline">${esc(headline)}</div>
+      </div>` : ''}
+    </div>`;
+  document.title = `Classroom Compass${a.name ? ' · ' + a.name : ''}`;
+}
+
+// ── controls ────────────────────────────────────────────────────────────
+function renderControls() {
+  const dims = {
+    metro:           { label: 'Metro type',   opts: labelsFor('metro') },
+    grade:           { label: 'Grade level',  opts: labelsFor('grade') },
+    efs:             { label: 'EFS',          opts: EFS_ORDER.filter(v => labelsFor('efs').includes(v)) },
+    category_bucket: { label: 'Category',     opts: [...new Set(D.insights.map(i => displayCategory(i)))].sort() },
+  };
+
+  const filtersHtml = Object.entries(dims).map(([key, dim]) => `
+    <div class="filter-group">
+      <div class="filter-label">${dim.label}</div>
+      <div class="filter-opts" data-field="${key}">
+        ${dim.opts.map(o => `<button class="filter-chip" data-value="${esc(o)}">${esc(o)}</button>`).join('')}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('controls-bar').innerHTML = `
+    <div class="controls-inner">
+      <div style="display:flex; align-items:center; gap:0.75rem; flex:1">
+        <span style="font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--gray); writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; flex-shrink:0">Filters</span>
+        <div class="filters" id="filter-area" style="flex:1">
+        ${filtersHtml}
+        <button class="reset-btn" id="reset-btn" style="display:none" onclick="window.__resetFilters()">Reset filters</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const field = btn.closest('[data-field]').dataset.field;
+      const val   = btn.dataset.value;
+      if (!filters[field]) filters[field] = new Set();
+      if (filters[field].has(val)) { filters[field].delete(val); btn.classList.remove('active'); }
+      else                         { filters[field].add(val);    btn.classList.add('active');    }
+      const any = Object.values(filters).some(s => s.size > 0);
+      document.getElementById('reset-btn').style.display = any ? 'inline-flex' : 'none';
+      renderCards(true);
+    });
+  });
+}
+
+function labelsFor(field) {
+  return (D.full_corpus[field] || {}).labels || [];
+}
+
+window.__resetFilters = function () {
+  filters = {};
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  document.getElementById('reset-btn').style.display = 'none';
+  renderCards(true);
+};
+
+window.__setMode = function (m) {
+  mode = m;
+  document.getElementById('btn-send').classList.toggle('active', m === 'send');
+  document.getElementById('btn-present').classList.toggle('active', m === 'presentation');
+  document.body.className = 'mode-' + m;
+};
+
+// ── relevance scoring ────────────────────────────────────────────────────
+function score(ins) {
+  let s = 0;
+  ['metro','grade','efs'].forEach(field => {
+    const sel = filters[field];
+    if (!sel || sel.size === 0) return;
+    const ch = ins.charts[field];
+    if (!ch) return;
+    sel.forEach(v => { const idx = ch.labels.indexOf(v); if (idx >= 0) s += ch.values[idx]; });
+  });
+  const catSel = filters['category_bucket'];
+  if (catSel && catSel.size > 0 && catSel.has(displayCategory(ins))) s += 1;
+  return s;
+}
+
+function sortedInsights() {
+  const anyFilter = Object.values(filters).some(s => s.size > 0);
+  // default order: cross-category first (is_cross=true), then by project_count desc
+  const base = D.insights.slice().sort((a, b) => {
+    if (a.is_cross !== b.is_cross) return a.is_cross ? -1 : 1;
+    return b.project_count - a.project_count;
+  });
+  if (!anyFilter) return base;
+  return base.sort((a, b) => score(b) - score(a));
+}
+
+// ── signal bar ───────────────────────────────────────────────────────────
+function sigBar(ratio, color) {
+  const filled = Math.min(5, Math.round(ratio * 5));
+  const blocks = Array.from({length: 5}, (_, i) =>
+    `<span class="sig-block${i < filled ? ' filled' : ''}" ${i < filled ? `style="background:${color}"` : ''}></span>`
+  ).join('');
+  return `<span class="sig-label">Signal</span>
+          <div class="sig-bar">${blocks}</div>
+          <span class="sig-pct">${Math.round(ratio * 100)}%</span>`;
+}
+
+// ── card HTML ────────────────────────────────────────────────────────────
+function renderCards(preserveExpanded) {
+  const prevExpanded = preserveExpanded ? expandedId : null;
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = sortedInsights().map(ins => cardHTML(ins)).join('');
+
+  document.querySelectorAll('.summary-card').forEach(card => {
+    const id = card.dataset.id;
+    card.addEventListener('click', e => {
+      if (e.target.closest('.detail-panel') || e.target.closest('.expand-btn') || e.target.closest('a')) return;
+      toggleCard(id);
+    });
+    card.querySelector('.expand-btn').addEventListener('click', () => toggleCard(id));
+  });
+
+  if (prevExpanded) {
+    const el = document.querySelector(`[data-id="${prevExpanded}"]`);
+    if (el) expandCard(prevExpanded, el, false);
+  }
+  handleAnchor();
+}
+
+function cardHTML(ins) {
+  const color   = catColor(ins);
+  const cat     = displayCategory(ins);
+  const secLbl  = sectionLabel(ins);
+
+  // badge 1: projects
+  const b1val = Number(ins.project_count).toLocaleString();
+  const b1lbl = 'projects';
+
+  // badge 2: most separating field+value
+  const b2val = ins.sep1_val ? `+${ins.sep1_val}%` : '—';
+  const b2lbl = ins.sep1_lbl || 'vs population';
+
+  // badge 3: second most separating
+  const b3val = ins.sep2_val ? `+${ins.sep2_val}%` : '—';
+  const b3lbl = ins.sep2_lbl || '';
+
+  // badge 4: avg topic fit
+  const b4val = `${(ins.mean_topic_share * 100).toFixed(0)}%`;
+  const b4lbl = 'avg topic fit';
+
+  return `
+<article class="summary-card" id="card-${ins.id}" data-id="${ins.id}" style="--cat-color:${color}">
+  <div class="card-header">
+    <div class="card-badges">
+      <span class="cat-badge" style="color:${color}">${esc(cat)}</span>
+      ${secLbl ? `<span class="section-badge">${esc(secLbl)}</span>` : ''}
+    </div>
+    <button class="expand-btn" aria-label="Expand insight"><span class="expand-icon">▼</span></button>
+  </div>
+  <div class="card-body">
+    <h2 class="insight-title">${esc(ins.title)}</h2>
+    <div class="signal-row">${sigBar(ins.verification_ratio, color)}</div>
+  </div>
+  <div class="card-footer">
+    <div class="card-stat">
+      <span class="stat-val">${b1val}</span>
+      <span class="stat-lbl">${b1lbl}</span>
+    </div>
+    <div class="card-stat">
+      <span class="stat-val" title="${esc(ins.sep1_lbl||'')}" style="color:${color}">${b2val}</span>
+      <span class="stat-lbl" title="${esc(ins.sep1_lbl||'')}">${esc(b2lbl)}</span>
+    </div>
+    ${ins.sep2_lbl ? `<div class="card-stat">
+      <span class="stat-val" style="color:${color}">${b3val}</span>
+      <span class="stat-lbl">${esc(b3lbl)}</span>
+    </div>` : ''}
+    <div class="card-stat">
+      <span class="stat-val">${b4val}</span>
+      <span class="stat-lbl">${b4lbl}</span>
+    </div>
+  </div>
+  <div class="detail-panel" style="display:none" id="detail-${ins.id}">
+    ${detailHTML(ins, color)}
+  </div>
+</article>`;
+}
+
+function detailHTML(ins, color) {
+  const fields = ['metro','grade','efs','race'].filter(f => ins.charts && ins.charts[f]);
+  const fldLabels = {metro:'Metro Type', grade:'Grade Level', efs:'EFS Classification', race:'Student Race'};
+
+  const chartsGrid = fields.map(f => {
+    const h = Math.max(150, (ins.charts[f].labels||[]).length * 30 + 50);
+    return `<div class="chart-item">
+      <div class="chart-title">${fldLabels[f]}</div>
+      <div class="chart-wrap" style="height:${h}px">
+        <canvas id="cv-${ins.id}-${f}" role="img" aria-label="${fldLabels[f]} for ${esc(ins.title)}"></canvas>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+<div class="detail-inner">
+  <div class="detail-prose">
+    ${ins.what_we_see ? `<div class="prose-section">
+      <div class="prose-label">What we're seeing</div>
+      <p class="prose-text">${esc(ins.what_we_see)}</p>
+    </div>` : ''}
+    ${ins.why_easy_to_miss ? `<div class="prose-section">
+      <div class="prose-label">Why this is easy to miss</div>
+      <p class="prose-text">${esc(ins.why_easy_to_miss)}</p>
+    </div>` : ''}
+  </div>
+  ${fields.length > 0 ? `
+  <button class="charts-toggle" id="chartstoggle-${ins.id}" onclick="window.__toggleCharts('${ins.id}')">
+    Hide charts ▲
+  </button>
+  <div class="charts-panel" id="chartspanel-${ins.id}">
+    <div class="charts-grid">${chartsGrid}</div>
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>This insight</span>
+      <span class="legend-item"><span class="legend-tick"></span>Full population baseline</span>
+    </div>
+  </div>` : ''}
+</div>
+<div class="detail-footer">
+  <div class="trust-section">
+    <button class="trust-btn" onclick="window.__toggleTrust('${ins.id}')">Methods &amp; confidence ▼</button>
+    <div class="trust-panel" id="trust-${ins.id}" style="display:none">
+      <table class="trust-table">
+        <tr><td>Signal score</td><td>${Math.round(ins.verification_ratio*100)}% of source topics verified (verification_ratio)</td></tr>
+        <tr><td>Supporting projects</td><td>${Number(ins.project_count).toLocaleString()}</td></tr>
+        <tr><td>Verified topics</td><td>${ins.verified_topic_count}</td></tr>
+        <tr><td>Avg topic fit</td><td>${(ins.mean_topic_share*100).toFixed(1)}%</td></tr>
+        <tr><td>TVD vs population (mean)</td><td>${(ins.tvd.mean||0).toFixed(3)}</td></tr>
+        <tr><td>TVD metro / grade / EFS / race</td><td>${(ins.tvd.metro||0).toFixed(3)} / ${(ins.tvd.grade||0).toFixed(3)} / ${(ins.tvd.efs||0).toFixed(3)} / ${(ins.tvd.race||0).toFixed(3)}</td></tr>
+        <tr><td>Run ID</td><td>${esc(D.meta.run_id)}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="explore-row">
+    ${ins.looker_url ? `<a class="explore-btn" href="${esc(ins.looker_url)}" target="_blank" rel="noopener" style="background:${color}">
+      Explore ${Number(ins.project_count).toLocaleString()} project essays →
+    </a>` : ''}
+    <button class="copy-link-btn" id="copylink-${ins.id}" onclick="window.__copyLink('${ins.id}')">Copy insight link</button>
+  </div>
+</div>`;
+}
+
+// ── expand / collapse ────────────────────────────────────────────────────
+function toggleCard(id) {
+  if (expandedId === id) { collapseCard(id); }
+  else {
+    if (expandedId) collapseCard(expandedId);
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) expandCard(id, el, true);
+  }
+}
+
+function expandCard(id, el, scroll) {
+  expandedId = id;
+  el.classList.add('expanded');
+  const detail = document.getElementById('detail-' + id);
+  detail.style.display = 'block';
+  history.replaceState(null, '', '#' + id);
+  if (scroll) setTimeout(() => { const y = el.getBoundingClientRect().top + window.scrollY - 170; window.scrollTo({top: y, behavior:'smooth'}); }, 50);
+  // charts open by default — render immediately on first expand
+  if (!chartsRendered[id]) {
+    chartsRendered[id] = true;
+    setTimeout(() => lazyRenderCharts(id), 60);
+  }
+}
+
+function collapseCard(id) {
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) {
+    el.classList.remove('expanded');
+    document.getElementById('detail-' + id).style.display = 'none';
+  }
+  if (expandedId === id) {
+    expandedId = null;
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
+// ── charts toggle ────────────────────────────────────────────────────────
+window.__toggleCharts = function (id) {
+  const panel  = document.getElementById('chartspanel-' + id);
+  const toggle = document.getElementById('chartstoggle-' + id);
+  if (!panel) return;
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    toggle.textContent  = 'Hide charts ▲';
+    if (!chartsRendered[id]) { chartsRendered[id] = true; lazyRenderCharts(id); }
+  } else {
+    panel.style.display = 'none';
+    toggle.textContent  = 'View supporting charts ▼';
+  }
+};
+
+window.__toggleTrust = function (id) {
+  const p = document.getElementById('trust-' + id);
+  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+};
+
+// ── chart rendering ──────────────────────────────────────────────────────
+const BASELINE_PLUGIN = {
+  id: 'bl',
+  afterDatasetsDraw(chart) {
+    const bl = chart.options.plugins.bl;
+    if (!bl) return;
+    const ctx = chart.ctx, xs = chart.scales.x, ys = chart.scales.y;
+    bl.forEach((val, i) => {
+      if (val === null || val === undefined) return;
+      const x = xs.getPixelForValue(val);
+      const y = ys.getPixelForValue(i);
+      const h = ys.height / ((ys.ticks ? ys.ticks.length : 5) * 2.2);
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, y - h); ctx.lineTo(x, y + h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+};
+
+function lazyRenderCharts(id) {
+  const ins   = D.insights.find(i => i.id === id);
+  if (!ins) return;
+  const color = catColor(ins);
+
+  ['metro','grade','efs','race'].forEach(field => {
+    const ch = ins.charts && ins.charts[field];
+    if (!ch) return;
+    const canvas = document.getElementById(`cv-${id}-${field}`);
+    if (!canvas || canvas._chartInst) return;
+
+    const isRace = field === 'race';
+    const xmax   = ch.xmax || 1;
+
+    const inst = new Chart(canvas, {
+      type: 'bar',
+      plugins: [BASELINE_PLUGIN],
+      data: {
+        labels: ch.labels,
+        datasets: [{ data: ch.values, backgroundColor: color + '99', borderColor: color, borderWidth: 1, borderRadius: 3 }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          bl: ch.baseline,
+          tooltip: {
+            callbacks: {
+              label: ctx => isRace ? ` ${ctx.raw.toFixed(1)}%` : ` ${(ctx.raw * 100).toFixed(1)}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            max: xmax,
+            grid: { color: '#ece9e1', lineWidth: 0.5 },
+            ticks: {
+              font: { size: 10 }, color: '#bbb', maxTicksLimit: 4,
+              callback: v => isRace ? v.toFixed(0) + '%' : (v * 100).toFixed(0) + '%'
+            },
+            border: { display: false }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 10 }, color: '#444', crossAlign: 'far' },
+            border: { display: false }
+          }
+        }
+      }
+    });
+    canvas._chartInst = inst;
+  });
+}
+
+// ── anchor handling ──────────────────────────────────────────────────────
+function handleAnchor() {
+  const id = window.location.hash.slice(1);
+  if (id && id !== expandedId) {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) setTimeout(() => expandCard(id, el, true), 80);
+  }
+}
+
+window.__copyLink = function (id) {
+  const url = location.origin + location.pathname + '#' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copylink-' + id);
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy insight link', 1600); }
+  }).catch(() => { prompt('Copy this link:', url); });
+};
+
+// ── init ─────────────────────────────────────────────────────────────────
+renderHero();
+renderControls();
+renderCards(false);
+window.addEventListener('hashchange', handleAnchor);
+
+})();
+</script>
+</body>
+</html>
