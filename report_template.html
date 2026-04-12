@@ -465,9 +465,26 @@ function renderHero() {
       <div class="hero-top">
         <div class="hero-left">
           ${a.logo ? `<img class="hero-logo" src="${esc(a.logo)}" alt="${esc(a.name||'')}" onerror="this.style.display='none'">` : ''}
-          <div>
-            <div class="hero-name">${esc(a.name || 'Classroom Compass')}</div>
-            <div class="hero-sub">${esc(a.date || m.run_date)}</div>
+          <svg viewBox="0 0 320 60" width="326" height="60" role="img" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0">
+            <title>Classroom Compass by DonorsChoose</title>
+            <style>.wm{font-family:'Arial Black','Arial',sans-serif;font-weight:900;fill:white}.by{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;fill:rgba(255,255,255,0.55);font-size:12px}</style>
+            <text class="wm" font-size="26" y="26" textLength="149" lengthAdjust="spacingAndGlyphs">CLASSROOM</text>
+            <text class="wm" font-size="26" y="54" textLength="149" lengthAdjust="spacingAndGlyphs">COMPASS</text>
+            <line x1="161" y1="8" x2="161" y2="58" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+            <text class="by" x="169" y="36">by</text>
+            <text class="wm" font-size="26" x="184" y="26" textLength="125" lengthAdjust="spacingAndGlyphs">DONORS</text>
+            <text class="wm" font-size="26" x="184" y="54" textLength="125" lengthAdjust="spacingAndGlyphs">CHOOSE</text>
+          </svg>
+          <div style="display:flex;align-items:center;gap:1.5rem;padding-left:1.25rem;border-left:0.5px solid rgba(255,255,255,0.2);margin-left:0.25rem">
+            <div class="hero-chip">
+              <span class="chip-val">${esc(a.date || m.run_date)}</span>
+              <span class="chip-lbl">Run date</span>
+            </div>
+            <div style="width:0.5px;height:28px;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <div class="hero-chip">
+              <span class="chip-val">${esc(m.filter_range || 'All time')}</span>
+              <span class="chip-lbl">Date filter</span>
+            </div>
           </div>
           <div class="hero-chips">
             <div class="hero-chip">
@@ -484,10 +501,6 @@ function renderHero() {
           <button class="dark-btn" id="dark-toggle" onclick="window.__toggleDark()" title="Toggle dark mode">🌙</button>
         </div>
       </div>
-      ${m.filter_headline ? `
-      <div class="hero-context">
-        <div class="hero-context-headline">${esc(m.filter_headline)}</div>
-      </div>` : ''}
     </div>`;
   document.title = `Classroom Compass${a.name ? ' · ' + a.name : ''}`;
 }
@@ -981,7 +994,7 @@ function expandCard(id, el, scroll) {
           item.style.opacity    = '1';
         }, i * 55);
       });
-    }, 300);
+    }, 750);
   }
 }
 
