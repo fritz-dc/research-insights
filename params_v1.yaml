@@ -61,11 +61,11 @@ enrichment:
 
 analysis:
   group_by: project_category   # Column used to split the corpus into analysis groups. Downstream code expects a scalar field name.
-  min_group_projects: 50        # Minimum number of projects required for a group to be included in analysis.
-  min_coverage: 6               # Minimum number of groups a cross-group theme must appear in to be retained.
+  min_group_projects: 20        # Minimum number of projects required for a group to be included in analysis.
+  min_coverage: 4               # Minimum number of groups a cross-group theme must appear in to be retained.
   topic_assignment_threshold: 0.30  # Minimum topic_share required to link a project to a topic in the project-topic bridge table.
   nmf_min_shared: 3             # Minimum number of shared top terms required to count two topics as overlapping for cross-group theme detection.
-  cat_tfidf_top_n: 20           # Number of top TF-IDF terms to surface per group in category_tfidf.csv.
+  cat_tfidf_top_n: 30           # Number of top TF-IDF terms to surface per group in category_tfidf.csv.
   review_group: null            # Optional: restrict the full analysis run to a single group value. null = run all eligible groups.
   exclude_groups: []            # List of group values to skip entirely. Applied before any analysis step.
   synthesis_max_workers: 8      # Maximum number of concurrent threads in the per-group synthesis ThreadPoolExecutor.
@@ -88,9 +88,9 @@ analysis:
   # validated at startup and will raise an error if set to anything else.
 
   filters:
-    - field: funded_date
+    - field: expiration_date
       op: range
-      min: "2025-07-01"
+      min: "2023-07-01"
   # Declarative filter rules applied to the enriched corpus before analysis.
   # Each rule requires: field (column name), op (eq | in | range | is_null | not_null).
   # op: eq    requires: value
@@ -105,6 +105,8 @@ analysis:
     posted_year_quarter:           "quarterly time periods showing how teacher language evolved"
     metro_type_at_time_of_posting: "school metro types across DonorsChoose projects"
     school_is_low_income:          "low-income vs non-low-income schools"
+    efs_x_grade_band:              "efs waterfall interacted with grade band"
+    funding_status_x_metro:        "funded/expired interacted with metro type"
 
   verification:
     by_group_min_source_topics: 3  # Verify by-group insights only when they cite at least this many source topics. Cross-group insights are always verified regardless of topic count.
@@ -155,8 +157,8 @@ output:
     - "project.projectid"
     - "project_essays.essay"
   looker_limit: 500              # Row limit passed to Looker Explore URLs.
-  looker_id_limit: 100           # Maximum number of project IDs included in a Looker Explore URL filter. Separate from csv_max_ids_per_insight — Looker URLs have a practical length cap.
-  report_title: "Trend Tracker: [Update before each run]"  # Title shown at the top of the DOCX report. Replace the bracketed text with the actual report title before running NB03.
+  looker_id_limit: 200           # Maximum number of project IDs included in a Looker Explore URL filter. Separate from csv_max_ids_per_insight — Looker URLs have a practical length cap.
+  report_title: "Classroom Compass: [Update before each run]"  # Title shown at the top of the DOCX report. Replace the bracketed text with the actual report title before running NB03.
   report_main_section_label: "Main Insights"          # H1 heading for the main report section.
   report_appendix_section_label: "Appendix"           # H1 heading for the appendix section.
   report_main_cross_label: "Cross-Category Similarities"       # H2 heading for main-section cross-category insights.

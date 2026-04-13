@@ -128,7 +128,7 @@ button { font-family: var(--body-font); }
 }
 .reset-btn:hover { border-color: var(--coral); color: var(--coral); }
 .search-wrap {
-  display: flex; align-items: center; gap: 5px; margin-left: auto;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto;
 }
 .search-icon  { font-size: 18px; color: var(--subtext); }
 .search-input {
@@ -437,7 +437,7 @@ function hexToRgba(hex, alpha) {
 
 function displayCategory(ins) {
   const b = ins.category_bucket;
-  if (!b || b === '' || b.toLowerCase() === 'none' || ins.is_cross) return 'Cross-category';
+  if (!b || b === '' || b.toLowerCase() === 'none' || b.toLowerCase() === 'nan' || ins.is_cross) return 'Cross-category';
   return b;
 }
 
@@ -465,7 +465,8 @@ function renderHero() {
       <div class="hero-top">
         <div class="hero-left">
           ${a.logo ? `<img class="hero-logo" src="${esc(a.logo)}" alt="${esc(a.name||'')}" onerror="this.style.display='none'">` : ''}
-          <svg viewBox="0 0 320 60" width="326" height="60" role="img" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0">
+          <div>
+            <svg viewBox="0 0 320 60" width="326" height="60" role="img" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0">
             <title>Classroom Compass by DonorsChoose</title>
             <style>.wm{font-family:'Arial Black','Arial',sans-serif;font-weight:900;fill:white}.by{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;fill:rgba(255,255,255,0.55);font-size:12px}</style>
             <text class="wm" font-size="26" y="26" textLength="149" lengthAdjust="spacingAndGlyphs">CLASSROOM</text>
@@ -475,18 +476,8 @@ function renderHero() {
             <text class="wm" font-size="26" x="184" y="26" textLength="125" lengthAdjust="spacingAndGlyphs">DONORS</text>
             <text class="wm" font-size="26" x="184" y="54" textLength="125" lengthAdjust="spacingAndGlyphs">CHOOSE</text>
           </svg>
-          <div style="display:flex;align-items:center;gap:1.5rem;padding-left:1.25rem;border-left:0.5px solid rgba(255,255,255,0.2);margin-left:0.25rem">
-            <div class="hero-chip">
-              <span class="chip-val">${esc(a.date || m.run_date)}</span>
-              <span class="chip-lbl">Run date</span>
-            </div>
-            <div style="width:0.5px;height:28px;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
-            <div class="hero-chip">
-              <span class="chip-val">${esc(m.filter_range || 'All time')}</span>
-              <span class="chip-lbl">Date filter</span>
-            </div>
           </div>
-          <div class="hero-chips">
+          <div style="display:flex;align-items:center;gap:1.5rem;padding-left:1.25rem;border-left:0.5px solid rgba(255,255,255,0.2);margin-left:0.25rem">
             <div class="hero-chip">
               <span class="chip-val">${Number(m.project_count).toLocaleString()}</span>
               <span class="chip-lbl">projects analyzed</span>
@@ -494,6 +485,16 @@ function renderHero() {
             <div class="hero-chip">
               <span class="chip-val">${m.insight_count}</span>
               <span class="chip-lbl">insights surfaced</span>
+            </div>
+            <div style="width:0.5px;height:28px;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <div class="hero-chip">
+              <span class="chip-val">${esc(m.filter_range || 'All time')}</span>
+              <span class="chip-lbl">Date filter</span>
+            </div>
+            <div style="width:0.5px;height:28px;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <div class="hero-chip">
+              <span class="chip-val">${esc(a.date || m.run_date)}</span>
+              <span class="chip-lbl">Run date</span>
             </div>
           </div>
         </div>
@@ -507,11 +508,14 @@ function renderHero() {
 
 // ── Controls ────────────────────────────────────────────────────────────────
 function renderControls() {
+  const _projCatOpts = labelsFor('project_category').filter(l => l && l !== 'None' && l !== 'nan');
+  const _fundingOpts = (D.full_corpus.funding || {}).labels || [];
   const dims = {
-    metro:           { label: 'Metro type',  opts: labelsFor('metro') },
-    grade:           { label: 'Grade level', opts: labelsFor('grade') },
-    efs:             { label: 'EFS',         opts: EFS_ORDER.filter(v => labelsFor('efs').includes(v)) },
-    category_bucket: { label: 'Category',    opts: [...new Set(D.insights.map(i => displayCategory(i)))].sort() },
+    metro:            { label: 'Metro type',        opts: labelsFor('metro') },
+    grade:            { label: 'Grade level',        opts: labelsFor('grade') },
+    efs:              { label: 'EFS',                opts: EFS_ORDER.filter(v => labelsFor('efs').includes(v)) },
+    project_category: { label: 'Project category',  opts: _projCatOpts.sort() },
+    ...(_fundingOpts.length ? { funding: { label: 'Funded status', opts: _fundingOpts } } : {}),
   };
 
   const filtersHtml = Object.entries(dims).map(([key, dim]) => `
@@ -526,11 +530,13 @@ function renderControls() {
     <div class="controls-inner">
       <span class="controls-label">Filters</span>
       <div class="filters" id="filter-area">${filtersHtml}</div>
-      <button class="reset-btn" id="reset-btn" style="display:none" onclick="window.__resetFilters()">Reset</button>
       <div class="search-wrap">
-        <span class="search-icon">⌕</span>
-        <input type="search" class="search-input" id="search-input"
-               placeholder="Search insights…" oninput="window.__onSearch(this.value)">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span class="search-icon">⌕</span>
+          <input type="search" class="search-input" id="search-input"
+                 placeholder="Search insights…" oninput="window.__onSearch(this.value)">
+        </div>
+        <button class="reset-btn" id="reset-btn" style="display:none" onclick="window.__resetFilters()">Reset</button>
       </div>
     </div>`;
 
@@ -597,9 +603,29 @@ function getDimmedIds() {
       if (!overlap) passes = false;
     });
 
-    // Category filter: exact match
-    const catSel = filters['category_bucket'];
-    if (catSel && catSel.size > 0 && !catSel.has(displayCategory(ins))) passes = false;
+    // Project category filter — same overlap logic as metro/grade/efs
+    const projCatSel = filters['project_category'];
+    if (projCatSel && projCatSel.size > 0) {
+      const ch = ins.charts && ins.charts.project_category;
+      if (!ch) { passes = false; }
+      else {
+        const _fc    = D.full_corpus.project_category;
+        const _fcMap = _fc ? Object.fromEntries(_fc.labels.map((l,i) => [l, _fc.values[i]||0])) : {};
+        const overlap = ch.labels.some((lbl, i) => projCatSel.has(lbl) && (ch.values[i]||0) >= (_fcMap[lbl]||0));
+        if (!overlap) passes = false;
+      }
+    }
+
+    // Funded status filter
+    const fundSel = filters['funding'];
+    if (fundSel && fundSel.size > 0) {
+      const ch = ins.charts && ins.charts.funding;
+      if (!ch) { passes = false; }
+      else {
+        const overlap = ch.labels.some((lbl, i) => fundSel.has(lbl) && (ch.values[i] || 0) > 0);
+        if (!overlap) passes = false;
+      }
+    }
 
     // Full-text search: title + prose + item names — word-boundary matching
     // so "mental" doesn't match "developmental"
@@ -637,7 +663,13 @@ function applyFilterDisplay() {
     card.style.order = '';
   });
 
-  if (!anyActive) return;
+  if (!anyActive) {
+    sortedInsights().forEach(ins => {
+      const card = document.getElementById('card-' + ins.id);
+      if (card) grid.appendChild(card);
+    });
+    return;
+  }
 
   // Re-order DOM: matching first (by score desc), non-matching appended after.
   // appendChild on an existing child moves it — no innerHTML re-render needed.
@@ -657,14 +689,34 @@ function score(ins) {
     if (!ch) return;
     sel.forEach(v => { const idx = ch.labels.indexOf(v); if (idx >= 0) s += ch.values[idx]; });
   });
-  const catSel = filters['category_bucket'];
-  if (catSel && catSel.size > 0 && catSel.has(displayCategory(ins))) s += 1;
+  const projCatSel2 = filters['project_category'];
+  if (projCatSel2 && projCatSel2.size > 0) {
+    const ch = ins.charts && ins.charts.project_category;
+    if (ch) ch.labels.forEach((lbl, i) => { if (projCatSel2.has(lbl)) s += ch.values[i] || 0; });
+  }
+  const fundSel2 = filters['funding'];
+  if (fundSel2 && fundSel2.size > 0) {
+    const ch = ins.charts && ins.charts.funding;
+    if (ch) ch.labels.forEach((lbl, i) => { if (fundSel2.has(lbl)) s += ch.values[i] || 0; });
+  }
   return s;
 }
 
 function sortedInsights() {
   return D.insights.slice().sort((a, b) => {
+    const aMain = !!(a.report_section && a.report_section.includes('main'));
+    const bMain = !!(b.report_section && b.report_section.includes('main'));
+    // 1. All top tiles before all secondary tiles
+    if (aMain !== bMain) return aMain ? -1 : 1;
+    // 2. Within each tier, cross-category before by-group
     if (a.is_cross !== b.is_cross) return a.is_cross ? -1 : 1;
+    // 3. By-group: sort alphabetically by category name
+    if (!a.is_cross && !b.is_cross) {
+      const aCat = (a.category_bucket || '').toLowerCase();
+      const bCat = (b.category_bucket || '').toLowerCase();
+      if (aCat !== bCat) return aCat < bCat ? -1 : 1;
+    }
+    // 4. Tiebreak: project count descending
     return b.project_count - a.project_count;
   });
 }
@@ -844,40 +896,54 @@ function cardHTML(ins) {
 }
 
 function detailHTML(ins, color) {
-  const demoFields  = ['metro','grade','efs','race'].filter(f => ins.charts && ins.charts[f]);
-  const fldLabels   = {metro:'Metro Type', grade:'Grade Level', efs:'EFS Classification', race:'Student Race'};
+  const fldLabels = {
+    metro: 'Metro Type', grade: 'Grade Level', efs: 'EFS Classification',
+    race: 'Student Race', posting: 'Posting Period', cost_distr: 'Project Cost',
+  };
 
-  const demoGrid = demoFields.map(f => {
-    const h = Math.max(130, (ins.charts[f].labels||[]).length * 30 + 50);
+  const canvasItem = (field, h) => {
+    const ch = ins.charts && ins.charts[field];
+    if (!ch || !(ch.labels || []).length) return '';
     return `<div class="chart-item">
-      <div class="chart-title">${fldLabels[f]}</div>
+      <div class="chart-title">${fldLabels[field]}</div>
       <div class="chart-wrap" style="height:${h}px">
-        <canvas id="cv-${ins.id}-${f}" role="img" aria-label="${fldLabels[f]} for ${esc(ins.title)}"></canvas>
+        <canvas id="cv-${ins.id}-${field}" role="img" aria-label="${fldLabels[field]} for ${esc(ins.title)}"></canvas>
       </div>
     </div>`;
-  }).join('');
+  };
 
-  // Row 3: resource categories chart + state tile map
-  const hasCat   = ins.charts && ins.charts.item_category && (ins.charts.item_category.labels||[]).length;
-  const hasState = ins.charts && ins.charts.state          && (ins.charts.state.labels||[]).length;
+  const barH = field =>
+    Math.max(130, ((ins.charts || {})[field]?.labels?.length || 4) * 30 + 50);
 
-  const catChartHTML = hasCat ? (() => {
-    const h = Math.max(220, (ins.charts.item_category.labels||[]).length * 24 + 40);
-    return `<div class="chart-item">
-      <div class="chart-title">Resource Categories</div>
-      <div class="chart-wrap" style="height:${h}px">
-        <canvas id="cv-${ins.id}-item_category" role="img" aria-label="Resource categories for ${esc(ins.title)}"></canvas>
-      </div>
-    </div>`;
-  })() : '';
+  const hasCat   = !!(ins.charts?.item_category?.labels?.length);
+  const hasState = !!(ins.charts?.state?.labels?.length);
+  const catH     = Math.max(160, (ins.charts?.item_category?.labels?.length || 5) * 24 + 40);
 
-  const stateMapHTML = hasState ? `
-    <div class="chart-item">
+  // row 1: map | posting
+  // row 2: grade | race
+  // row 3: efs   | metro
+  // row 4: resource categories | cost
+  const chartsHTML = [
+    hasState ? `<div class="chart-item">
       <div class="chart-title">By State</div>
       <div class="state-map-wrap">${buildStateMap(ins, color)}</div>
-    </div>` : '';
+    </div>` : '',
+    canvasItem('posting',    barH('posting')),
+    canvasItem('grade',      barH('grade')),
+    canvasItem('race',       barH('race')),
+    canvasItem('efs',        barH('efs')),
+    canvasItem('metro',      barH('metro')),
+    hasCat ? `<div class="chart-item">
+      <div class="chart-title">Resource Categories</div>
+      <div class="chart-wrap" style="height:${catH}px">
+        <canvas id="cv-${ins.id}-item_category" role="img" aria-label="Resource categories for ${esc(ins.title)}"></canvas>
+      </div>
+    </div>` : '',
+    canvasItem('cost_distr', barH('cost_distr')),
+  ].join('');
 
-  const hasCharts = demoFields.length > 0 || hasCat || hasState;
+  const hasCharts = hasCat || hasState ||
+    ['grade','race','efs','metro','posting','cost_distr'].some(f => ins.charts?.[f]?.labels?.length > 0);
 
   return `
 <div class="detail-inner">
@@ -902,9 +968,7 @@ function detailHTML(ins, color) {
       <span class="legend-item"><span class="legend-delta-up">+Xpp</span>&nbsp;<span class="legend-delta-down">−Xpp</span>&nbsp;vs full population</span>
     </div>
     <div class="charts-grid">
-      ${demoGrid}
-      ${catChartHTML}
-      ${stateMapHTML}
+      ${chartsHTML}
     </div>
     ${itemsTableHTML(ins)}
   </div>` : ''}
@@ -920,7 +984,7 @@ function detailHTML(ins, color) {
         <tr><td>Avg topic fit</td><td>${(ins.mean_topic_share*100).toFixed(1)}%</td></tr>
         <tr><td>TVD vs population (mean)</td><td>${(ins.tvd.mean||0).toFixed(3)}</td></tr>
         <tr><td>TVD metro / grade / EFS / race</td><td>${(ins.tvd.metro||0).toFixed(3)} / ${(ins.tvd.grade||0).toFixed(3)} / ${(ins.tvd.efs||0).toFixed(3)} / ${(ins.tvd.race||0).toFixed(3)}</td></tr>
-        <tr><td>Run ID</td><td>${esc(D.meta.run_id)}</td></tr>
+        <tr><td>Run ID</td><td>${esc(ins.source_run_id || D.meta.run_id)}</td></tr>
       </table>
     </div>
   </div>
@@ -1097,7 +1161,7 @@ function lazyRenderCharts(id) {
   const color = catColor(ins);
 
   // Demographic bar charts (metro, grade, efs, race)
-  ['metro','grade','efs','race'].forEach(field => {
+  ['metro','grade','efs','race','posting','cost_distr'].forEach(field => {
     const ch     = ins.charts && ins.charts[field];
     if (!ch) return;
     const canvas = document.getElementById(`cv-${id}-${field}`);
