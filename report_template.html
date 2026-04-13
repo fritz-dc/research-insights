@@ -418,7 +418,8 @@ let searchQ        = '';
 let expandedId     = null;
 let chartsRendered = {};
 
-const EFS_ORDER = ['Race+Inc','Rural','Race','Inc','NonEFS'];
+const EFS_ORDER   = ['Race+Inc','Rural','Race','Inc','NonEFS'];
+const GRADE_ORDER = ['Grades PreK-2','Grades 3-5','Grades 6-8','Grades 9-12'];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function esc(s) {
@@ -899,6 +900,7 @@ function detailHTML(ins, color) {
   const fldLabels = {
     metro: 'Metro Type', grade: 'Grade Level', efs: 'EFS Classification',
     race: 'Student Race', posting: 'Posting Period', cost_distr: 'Project Cost',
+    funding: 'Funded Status',
   };
 
   const canvasItem = (field, h) => {
@@ -939,11 +941,14 @@ function detailHTML(ins, color) {
         <canvas id="cv-${ins.id}-item_category" role="img" aria-label="Resource categories for ${esc(ins.title)}"></canvas>
       </div>
     </div>` : '',
-    canvasItem('cost_distr', barH('cost_distr')),
+    `<div style="display:flex;flex-direction:column;gap:1rem">
+      ${canvasItem('cost_distr', barH('cost_distr'))}
+      ${canvasItem('funding',    barH('funding'))}
+    </div>`,
   ].join('');
 
   const hasCharts = hasCat || hasState ||
-    ['grade','race','efs','metro','posting','cost_distr'].some(f => ins.charts?.[f]?.labels?.length > 0);
+    ['grade','race','efs','metro','posting','cost_distr','funding'].some(f => ins.charts?.[f]?.labels?.length > 0);
 
   return `
 <div class="detail-inner">
@@ -1161,13 +1166,29 @@ function lazyRenderCharts(id) {
   const color = catColor(ins);
 
   // Demographic bar charts (metro, grade, efs, race)
-  ['metro','grade','efs','race','posting','cost_distr'].forEach(field => {
+  ['metro','grade','efs','race','posting','cost_distr','funding'].forEach(field => {
     const ch     = ins.charts && ins.charts[field];
     if (!ch) return;
     const canvas = document.getElementById(`cv-${id}-${field}`);
     if (!canvas || canvas._chartInst) return;
 
     const isRace = field === 'race';
+
+    // For grade, reorder to developmental sequence (PreK-2 at top)
+    let labels   = ch.labels;
+    let values   = ch.values;
+    let baseline = ch.baseline;
+    if (field === 'grade') {
+      const gradeIdx = ch.labels.map((_, i) => i)
+        .sort((a, b) => {
+          const ai = GRADE_ORDER.indexOf(ch.labels[a]);
+          const bi = GRADE_ORDER.indexOf(ch.labels[b]);
+          return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+        });
+      labels   = gradeIdx.map(i => ch.labels[i]);
+      values   = gradeIdx.map(i => ch.values[i]);
+      baseline = ch.baseline ? gradeIdx.map(i => ch.baseline[i]) : ch.baseline;
+    }
 
     // Uniform fill — delta communicated via ±pp annotations, not bar colour
     const barBg = color + 'CC';
@@ -1176,9 +1197,9 @@ function lazyRenderCharts(id) {
       type: 'bar',
       plugins: [BASELINE_PLUGIN],
       data: {
-        labels: ch.labels,
+        labels: labels,
         datasets: [{
-          data:            ch.values,
+          data:            values,
           backgroundColor: barBg,
           borderColor:     color,
           borderWidth:     1,
@@ -1190,7 +1211,7 @@ function lazyRenderCharts(id) {
         layout: { padding: { right: 46 } },   // room for ±Xpp labels
         plugins: {
           legend:  { display: false },
-          bl:      ch.baseline,
+          bl:      baseline,
           _isRace: isRace,
           tooltip: {
             callbacks: {
