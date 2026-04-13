@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom Compass</title>
+<link rel="icon" type="image/png" href="__FAVICON__">
+<style>
+
+/* ══ 1 · DESIGN TOKENS ════════════════════════════════════════════════════════ */
+:root {
+  /* palette */
+  --navy:    #2D00A0;
+  --blue:    #1A6FB5;
+  --teal:    #0D8C5E;
+  --coral:   #C94C1F;
+  --amber:   #9A6200;
+  --pink:    #A83060;
+  --purple:  #5B3FA6;
+  --cyan:    #1A8FA6;
+  --gray:    #6B6B6B;
+  --lgray:   #E8E5DE;
+  --offwhite:#F7F5F0;
+  --white:   #FFFFFF;
+  --body-font:  'Helvetica Neue', Arial, sans-serif;
+  --prose-font: Georgia, 'Times New Roman', serif;
+  /* semantic */
+  --text:      #0D1B2A;
+  --subtext:   #6B6B6B;
+  --bg:        #F7F5F0;
+  --surface:   #FFFFFF;
+  --border:    #E8E5DE;
+  --filter-bg: #EBF2FC;
+}
+
+/* dark mode — single data-theme swap, no JS per-property */
+:root[data-theme="dark"] {
+  --text:      #B8D2E8;
+  --subtext:   #678099;
+  --bg:        #07111D;
+  --surface:   #0B1927;
+  --border:    #173050;
+  --filter-bg: #060F1C;
+  --lgray:     #173050;
+  --offwhite:  #07111D;
+  --white:     #0B1927;
+  --navy:      #1A0060;
+  --gray:      #678099;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html  { scroll-behavior: smooth; }
+body  { font-family: var(--body-font); background: var(--bg); color: var(--text);
+        line-height: 1.5; transition: background 0.22s, color 0.22s; }
+a     { color: inherit; }
+button { font-family: var(--body-font); }
+
+/* ══ 2 · HERO ═════════════════════════════════════════════════════════════════ */
+.hero {
+  background: var(--navy);
+  padding: 1.25rem 2rem 1rem;
+  position: sticky; top: 0; z-index: 200;
+  transition: background 0.22s;
+}
+.hero-inner { max-width: 1200px; margin: 0 auto; }
+.hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; margin-bottom: 0.75rem;
+}
+.hero-left  { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.hero-logo  { height: 32px; width: auto; object-fit: contain; flex-shrink: 0; }
+.hero-name  { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.01em;
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero-sub   { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+.hero-right { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; }
+.hero-chips { display: flex; gap: 1.5rem; padding-left: 1.25rem; border-left: 0.5px solid rgba(255,255,255,0.2); margin-left: 0.25rem; }
+.hero-chip  { text-align: right; }
+.chip-val   { display: block; font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+.chip-lbl   { display: block; font-size: 9px; color: rgba(255,255,255,0.4);
+               text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+.dark-btn {
+  background: rgba(255,255,255,0.08); border: 0.5px solid rgba(255,255,255,0.15);
+  border-radius: 50%; width: 30px; height: 30px; cursor: pointer;
+  color: rgba(255,255,255,0.75); font-size: 14px; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background 0.14s;
+}
+.dark-btn:hover { background: rgba(255,255,255,0.16); }
+.hero-context { border-top: 0.5px solid rgba(255,255,255,0.12); padding-top: 0.65rem; }
+.hero-context-headline { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);
+                         margin-bottom: 3px; line-height: 1.4; }
+.hero-context-detail   { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+.hero-context-detail span { color: rgba(255,255,255,0.65); }
+
+/* ══ 3 · CONTROLS BAR ═════════════════════════════════════════════════════════ */
+.controls-bar {
+  background: var(--filter-bg);
+  border-bottom: 2px solid var(--blue);
+  padding: 0.6rem 2rem;
+  position: sticky; top: 0; z-index: 190;  /* top offset set by JS after hero height known */
+  transition: background 0.22s, border-color 0.22s;
+}
+.controls-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: flex-start; gap: 1.25rem; flex-wrap: wrap;
+}
+.controls-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--subtext); writing-mode: vertical-rl; transform: rotate(180deg);
+  white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+}
+.filters { display: flex; gap: 1rem; flex-wrap: wrap; flex: 1; align-items: flex-start; }
+.filter-group { display: flex; flex-direction: column; gap: 3px; }
+.filter-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em;
+                color: var(--subtext); font-weight: 700; }
+.filter-opts  { display: flex; gap: 3px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 2px 8px; font-size: 10px; border: 0.5px solid var(--border);
+  border-radius: 20px; background: var(--surface); color: var(--text);
+  cursor: pointer; transition: all 0.12s;
+}
+.filter-chip:hover  { border-color: var(--blue); color: var(--blue); }
+.filter-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.reset-btn {
+  padding: 4px 10px; font-size: 10px; border: 0.5px solid var(--border);
+  border-radius: 4px; background: transparent; color: var(--subtext);
+  cursor: pointer; align-self: flex-end; transition: all 0.12s;
+}
+.reset-btn:hover { border-color: var(--coral); color: var(--coral); }
+.search-wrap {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto;
+}
+.search-icon  { font-size: 18px; color: var(--subtext); }
+.search-input {
+  font-family: var(--body-font); font-size: 11px; outline: none;
+  border: 0.5px solid var(--border); border-radius: 4px;
+  background: var(--surface); color: var(--text);
+  padding: 4px 8px; width: 150px; transition: border-color 0.14s, width 0.2s;
+}
+.search-input:focus       { border-color: var(--blue); width: 210px; }
+.search-input::placeholder { color: var(--subtext); }
+
+/* ══ 4 · CARD GRID ════════════════════════════════════════════════════════════ */
+#card-grid {
+  max-width: 1200px; margin: 1.5rem auto 3rem; padding: 0 2rem;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem; align-items: start;
+}
+
+/* ══ 5 · SUMMARY CARD ═════════════════════════════════════════════════════════ */
+@keyframes tileIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.summary-card {
+  background: var(--surface);
+  border-radius: 7px;
+  border: 0.5px solid var(--border);
+  border-top: 3px solid var(--cat-color, var(--blue));
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0; /* overridden immediately by animation */
+  animation: tileIn 0.35s ease forwards;
+  transition: box-shadow 0.18s, opacity 0.2s;
+}
+.summary-card:hover  { box-shadow: 0 3px 14px rgba(0,0,0,0.09); }
+.summary-card.expanded { grid-column: 1 / -1; cursor: default; }
+.summary-card.card--dimmed { opacity: 0.22 !important; pointer-events: none; }
+
+.card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 11px 13px 5px;
+}
+.card-badges { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.cat-badge   { font-size: 9px; font-weight: 700; text-transform: uppercase;
+               letter-spacing: 0.07em; color: var(--cat-color, var(--blue)); }
+.section-badge { font-size: 9px; color: var(--subtext); background: var(--bg);
+                 padding: 1px 5px; border-radius: 8px; }
+.expand-btn {
+  background: none; border: none; cursor: pointer; color: var(--subtext);
+  padding: 0 0 0 8px; font-size: 11px; line-height: 1;
+  transition: color 0.12s; flex-shrink: 0;
+}
+.expand-btn:hover { color: var(--text); }
+.expand-icon { display: inline-block; transition: transform 0.25s; }
+.summary-card.expanded .expand-icon { transform: rotate(180deg); }
+
+.card-body { padding: 3px 13px 9px; }
+.insight-title {
+  font-size: 13px; font-weight: 600; line-height: 1.45;
+  color: var(--text); margin-bottom: 7px;
+}
+.summary-card.expanded .insight-title { font-size: 16px; }
+.signal-row { display: flex; align-items: center; gap: 5px; }
+.sig-label  { font-size: 9px; color: var(--subtext); }
+.sig-bar    { display: flex; gap: 2px; }
+.sig-block  { width: 9px; height: 9px; border-radius: 1px; background: var(--border); }
+.sig-block.filled { background: var(--cat-color, var(--blue)); }
+.sig-pct    { font-size: 9px; color: var(--subtext); }
+
+.card-footer {
+  display: flex; padding: 7px 13px 11px; gap: 6px;
+  border-top: 0.5px solid var(--bg);
+}
+.card-stat { flex: 1; text-align: center; min-width: 0; }
+.stat-val  { display: block; font-size: 13px; font-weight: 700;
+             color: var(--cat-color, var(--blue)); line-height: 1.2;
+             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-lbl  { display: block; font-size: 8px; color: var(--subtext);
+             text-transform: uppercase; letter-spacing: 0.06em; margin-top: 1px;
+             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ══ 6 · DETAIL PANEL ═════════════════════════════════════════════════════════ */
+/* Height animates via JS (max-height transition), not display:none */
+.detail-panel {
+  border-top: 0.5px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+  max-height: 0;
+}
+.detail-inner { padding: 1.5rem 1.5rem 0; }
+.detail-prose { max-width: 780px; margin-bottom: 1.25rem; }
+.prose-section { margin-bottom: 1rem; border-left: 3px solid var(--cat-color, var(--blue)); padding-left: 12px; }
+.prose-label {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--cat-color, var(--blue)); margin-bottom: 5px;
+}
+.prose-text {
+  font-family: var(--body-font); font-size: 13px;
+  line-height: 1.72; color: var(--text);
+}
+
+.charts-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 13px; font-size: 11px; font-weight: 600;
+  color: var(--blue); background: var(--bg);
+  border-radius: 4px; cursor: pointer; user-select: none;
+  border: none; transition: background 0.12s; margin-bottom: 1rem;
+}
+.charts-toggle:hover { background: var(--border); }
+
+.charts-panel { padding: 0 1.5rem 1rem; }
+.charts-grid  {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1rem; margin-bottom: 0.75rem;
+}
+.chart-item {
+  background: var(--bg); border-radius: 5px; padding: 10px 12px;
+  transition: opacity 0.22s ease;
+}
+.chart-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--subtext); margin-bottom: 7px;
+}
+.chart-wrap { position: relative; }
+
+/* items table */
+.items-table-wrap { margin-bottom: 0.75rem; }
+.items-table { width: 100%; font-size: 11px; border-collapse: collapse; color: var(--text); }
+.items-table th {
+  text-align: left; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--subtext);
+  padding: 0 8px 5px 0; border-bottom: 0.5px solid var(--border);
+}
+.items-table th:last-child { text-align: right; }
+.items-table td { padding: 4px 8px 4px 0; border-bottom: 0.5px solid var(--bg); }
+.items-table td:last-child { text-align: right; color: var(--subtext);
+                              font-variant-numeric: tabular-nums; }
+.items-table tr:last-child td { border-bottom: none; }
+
+/* state tile map */
+.state-map-wrap { width: 100%; }
+
+.chart-legend {
+  display: flex; gap: 1.25rem; font-size: 10px;
+  color: var(--subtext); align-items: center; flex-wrap: wrap;
+}
+.legend-item        { display: flex; align-items: center; gap: 5px; }
+.legend-swatch      { width: 10px; height: 10px; border-radius: 2px;
+                      background: var(--cat-color, var(--blue)); opacity: 0.65; }
+.legend-tick        { width: 14px; height: 2.5px; background: rgba(0,0,0,0.55);
+                      border-radius: 1px; }
+.legend-delta-up    { font-size: 9px; font-weight: 700; color: var(--teal); }
+.legend-delta-down  { font-size: 9px; font-weight: 700; color: var(--coral); }
+
+/* detail footer */
+.detail-footer {
+  padding: 1rem 1.5rem 1.25rem;
+  display: flex; justify-content: space-between;
+  align-items: flex-end; gap: 1rem; flex-wrap: wrap;
+  border-top: 0.5px solid var(--bg);
+}
+.trust-btn  { background: none; border: none; font-size: 10px;
+              color: var(--subtext); cursor: pointer; padding: 0; }
+.trust-btn:hover { color: var(--text); }
+.trust-panel { margin-top: 8px; }
+.trust-table { font-size: 10px; color: var(--subtext); border-collapse: collapse; }
+.trust-table td { padding: 2px 12px 2px 0; vertical-align: top; }
+.trust-table td:first-child { color: var(--text); font-weight: 600; min-width: 160px; }
+.explore-row { display: flex; gap: 8px; align-items: center; }
+.explore-btn {
+  display: inline-flex; align-items: center;
+  padding: 7px 15px; font-size: 12px; font-weight: 600;
+  background: var(--cat-color, var(--blue)); color: #fff;
+  text-decoration: none; border-radius: 4px;
+  transition: opacity 0.15s; border: none; cursor: pointer;
+}
+.explore-btn:hover { opacity: 0.85; }
+.copy-link-btn {
+  padding: 6px 13px; font-size: 11px;
+  border: 0.5px solid var(--border); border-radius: 4px;
+  background: transparent; color: var(--subtext); cursor: pointer;
+  transition: all 0.12s;
+}
+.copy-link-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+
+/* floating tooltip for state map hover */
+#map-tooltip {
+  position: fixed; background: rgba(0,0,0,0.82); color: #fff;
+  padding: 4px 10px; border-radius: 4px; font-size: 10px; font-family: var(--body-font);
+  pointer-events: none; white-space: nowrap; z-index: 9999;
+  opacity: 0; transition: opacity 0.1s;
+}
+/* map zoom controls */
+.map-zoom-btn {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 3px; width: 20px; height: 20px; cursor: pointer;
+  font-size: 13px; line-height: 1; color: var(--subtext);
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.map-zoom-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ══ 7 · RESPONSIVE ═══════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  #card-grid    { grid-template-columns: repeat(2, 1fr); padding: 0 1rem; }
+  .charts-grid  { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  #card-grid      { grid-template-columns: 1fr; padding: 0 0.75rem; }
+  .hero-top       { flex-wrap: wrap; gap: 0.75rem; }
+  .hero-chips     { gap: 1rem; }
+  .chip-val       { font-size: 18px; }
+  .controls-inner { gap: 0.75rem; }
+  .filters        { gap: 0.75rem; }
+  .detail-footer  { flex-direction: column; align-items: flex-start; }
+}
+
+/* ══ 8 · PRINT ════════════════════════════════════════════════════════════════ */
+@media print {
+  body { background: white; font-size: 11pt; }
+  .hero { position: static; background: white !important; border-bottom: 1pt solid #ccc; padding: 0.5rem 0; }
+  .hero-name { color: black !important; font-size: 16pt; }
+  .hero-sub, .chip-lbl { color: #555 !important; }
+  .chip-val { color: black !important; font-size: 16pt; }
+  .controls-bar { display: none !important; }
+  #card-grid { display: block; padding: 0; margin: 0.5rem 0 0; }
+  .summary-card {
+    display: block !important; page-break-inside: avoid; break-inside: avoid;
+    border: 0.5pt solid #ccc !important; border-top: 2pt solid #333 !important;
+    margin-bottom: 0.75rem; box-shadow: none !important;
+    opacity: 1 !important; animation: none !important;
+  }
+  .expand-btn, .charts-toggle, .copy-link-btn, .trust-btn,
+  .trust-panel, .reset-btn, .dark-btn, .search-wrap { display: none !important; }
+  .detail-panel { max-height: none !important; overflow: visible !important; border-top: 0.5pt solid #ccc; }
+  .charts-panel { display: block !important; }
+  .charts-grid  { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .prose-text   { font-size: 10pt; }
+  .cat-badge, .section-badge, .stat-val, .prose-label { color: #333 !important; }
+  .explore-btn  { background: transparent !important; color: black !important;
+                  border: 0.5pt solid #333 !important; padding: 3px 8px; font-size: 9pt; }
+  .explore-btn::after { content: " (" attr(href) ")"; font-size: 8pt; color: #555; }
+  .card--dimmed { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="hero"></header>
+<div class="controls-bar" id="controls-bar"></div>
+<main id="card-grid"></main>
+
+<script>__CHARTJS__</script>
+<script>const REPORT_DATA = __REPORT_DATA__;</script>
+<script>
+(function () {
+'use strict';
+
+const D = REPORT_DATA;
+
+// ── Category colour palette ────────────────────────────────────────────────
+const PALETTE = [
+  '#1A6FB5','#0D8C5E','#C94C1F','#A83060',
+  '#9A6200','#5B3FA6','#1A8FA6','#6B8C1A',
+];
+const catColors = {};
+[...new Set(D.insights.map(i => i.category_bucket))].forEach((cat, idx) => {
+  catColors[cat] = PALETTE[idx % PALETTE.length];
+});
+catColors['Cross-category'] = '#0D1B2A';
+
+// ── US state tile grid (col, row) — 13 cols × 8 rows (50 states + DC) ─────
+const STATE_GRID = {
+  AK:{c:0,r:0},                                                                                                           ME:{c:11,r:0},
+  WA:{c:1,r:1}, MT:{c:2,r:1}, ND:{c:3,r:1}, MN:{c:4,r:1},                               VT:{c:10,r:1}, NH:{c:11,r:1},
+  OR:{c:1,r:2}, ID:{c:2,r:2}, WY:{c:3,r:2}, SD:{c:4,r:2}, WI:{c:6,r:2}, MI:{c:7,r:2},  NY:{c:9,r:2},  MA:{c:10,r:2}, RI:{c:11,r:2},
+  CA:{c:1,r:3}, NV:{c:2,r:3}, UT:{c:3,r:3}, CO:{c:4,r:3}, NE:{c:5,r:3}, IA:{c:6,r:3}, IL:{c:7,r:3}, IN:{c:8,r:3}, OH:{c:9,r:3}, PA:{c:10,r:3}, NJ:{c:11,r:3}, CT:{c:12,r:3},
+               AZ:{c:2,r:4}, NM:{c:3,r:4}, KS:{c:4,r:4}, MO:{c:5,r:4}, TN:{c:6,r:4}, KY:{c:7,r:4}, WV:{c:8,r:4}, VA:{c:9,r:4}, MD:{c:10,r:4}, DE:{c:11,r:4},
+                             OK:{c:4,r:5}, AR:{c:5,r:5}, MS:{c:6,r:5}, AL:{c:7,r:5}, GA:{c:8,r:5}, NC:{c:9,r:5}, SC:{c:10,r:5}, DC:{c:11,r:5},
+                             TX:{c:4,r:6}, LA:{c:5,r:6},                             FL:{c:8,r:6},
+  HI:{c:1,r:7},
+};
+
+// ── App state ──────────────────────────────────────────────────────────────
+let filters        = {};
+let searchQ        = '';
+let expandedId     = null;
+let chartsRendered = {};
+
+const EFS_ORDER   = ['Race+Inc','Rural','Race','Inc','NonEFS'];
+const GRADE_ORDER = ['Grades PreK-2','Grades 3-5','Grades 6-8','Grades 9-12'];
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+}
+
+function displayCategory(ins) {
+  const b = ins.category_bucket;
+  if (!b || b === '' || b.toLowerCase() === 'none' || b.toLowerCase() === 'nan' || ins.is_cross) return 'Cross-category';
+  return b;
+}
+
+function sectionLabel(ins) {
+  const rs = (ins.report_section || '').toLowerCase();
+  if (rs.includes('main'))     return 'top insight';
+  if (rs.includes('appendix')) return 'secondary insight';
+  return '';
+}
+
+function catColor(ins) {
+  const cat = displayCategory(ins);
+  return catColors[cat] || catColors[ins.category_bucket] || '#1A6FB5';
+}
+
+function insById(id) {
+  return D.insights.find(i => i.id === id) || {};
+}
+
+// ── Hero ─────────────────────────────────────────────────────────────────
+function renderHero() {
+  const a = D.account, m = D.meta;
+  document.getElementById('hero').innerHTML = `
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div class="hero-left">
+          ${a.logo ? `<img class="hero-logo" src="${esc(a.logo)}" alt="${esc(a.name||'')}" onerror="this.style.display='none'">` : ''}
+          <div>
+            <svg viewBox="0 0 320 60" width="326" height="60" role="img" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0">
+            <title>Classroom Compass by DonorsChoose</title>
+            <style>.wm{font-family:'Arial Black','Arial',sans-serif;font-weight:900;fill:white}.by{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;fill:rgba(255,255,255,0.55);font-size:12px}</style>
+            <text class="wm" font-size="26" y="26" textLength="149" lengthAdjust="spacingAndGlyphs">CLASSROOM</text>
+            <text class="wm" font-size="26" y="54" textLength="149" lengthAdjust="spacingAndGlyphs">COMPASS</text>
+            <line x1="161" y1="8" x2="161" y2="58" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+            <text class="by" x="169" y="36">by</text>
+            <text class="wm" font-size="26" x="184" y="26" textLength="125" lengthAdjust="spacingAndGlyphs">DONORS</text>
+            <text class="wm" font-size="26" x="184" y="54" textLength="125" lengthAdjust="spacingAndGlyphs">CHOOSE</text>
+          </svg>
+          </div>
+          <div style="display:flex;align-items:center;gap:1.5rem;padding-left:1.25rem;border-left:0.5px solid rgba(255,255,255,0.2);margin-left:0.25rem">
+            <div class="hero-chip">
+              <span class="chip-val">${Number(m.project_count).toLocaleString()}</span>
+              <span class="chip-lbl">projects analyzed</span>
+            </div>
+            <div class="hero-chip">
+              <span class="chip-val">${m.insight_count}</span>
+              <span class="chip-lbl">insights surfaced</span>
+            </div>
+            <div style="width:0.5px;height:28px;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <div class="hero-chip">
+              <span class="chip-val">${esc(m.filter_range || 'All time')}</span>
+              <span class="chip-lbl">Date filter</span>
+            </div>
+            <div style="width:0.5px;height:28px;background:rgba(255,255,255,0.2);flex-shrink:0"></div>
+            <div class="hero-chip">
+              <span class="chip-val">${esc(a.date || m.run_date)}</span>
+              <span class="chip-lbl">Run date</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-right">
+          <button class="dark-btn" id="dark-toggle" onclick="window.__toggleDark()" title="Toggle dark mode">🌙</button>
+        </div>
+      </div>
+    </div>`;
+  document.title = `Classroom Compass${a.name ? ' · ' + a.name : ''}`;
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+function renderControls() {
+  const _projCatOpts = labelsFor('project_category').filter(l => l && l !== 'None' && l !== 'nan');
+  const _fundingOpts = (D.full_corpus.funding || {}).labels || [];
+  const dims = {
+    metro:            { label: 'Metro type',        opts: labelsFor('metro') },
+    grade:            { label: 'Grade level',        opts: labelsFor('grade') },
+    efs:              { label: 'EFS',                opts: EFS_ORDER.filter(v => labelsFor('efs').includes(v)) },
+    project_category: { label: 'Project category',  opts: _projCatOpts.sort() },
+    ...(_fundingOpts.length ? { funding: { label: 'Funded status', opts: _fundingOpts } } : {}),
+  };
+
+  const filtersHtml = Object.entries(dims).map(([key, dim]) => `
+    <div class="filter-group">
+      <div class="filter-label">${dim.label}</div>
+      <div class="filter-opts" data-field="${key}">
+        ${dim.opts.map(o => `<button class="filter-chip" data-value="${esc(o)}">${esc(o)}</button>`).join('')}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('controls-bar').innerHTML = `
+    <div class="controls-inner">
+      <span class="controls-label">Filters</span>
+      <div class="filters" id="filter-area">${filtersHtml}</div>
+      <div class="search-wrap">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span class="search-icon">⌕</span>
+          <input type="search" class="search-input" id="search-input"
+                 placeholder="Search insights…" oninput="window.__onSearch(this.value)">
+        </div>
+        <button class="reset-btn" id="reset-btn" style="display:none" onclick="window.__resetFilters()">Reset</button>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const field = btn.closest('[data-field]').dataset.field;
+      const val   = btn.dataset.value;
+      if (!filters[field]) filters[field] = new Set();
+      if (filters[field].has(val)) { filters[field].delete(val); btn.classList.remove('active'); }
+      else                         { filters[field].add(val);    btn.classList.add('active');    }
+      const any = Object.values(filters).some(s => s.size > 0);
+      document.getElementById('reset-btn').style.display = (any || searchQ) ? 'inline-flex' : 'none';
+      applyFilterDisplay();
+    });
+  });
+}
+
+function labelsFor(field) {
+  return (D.full_corpus[field] || {}).labels || [];
+}
+
+window.__resetFilters = function () {
+  filters = {}; searchQ = '';
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  const si = document.getElementById('search-input'); if (si) si.value = '';
+  document.getElementById('reset-btn').style.display = 'none';
+  applyFilterDisplay();
+};
+
+window.__toggleDark = function () {
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = isDark ? '' : 'dark';
+  const btn = document.getElementById('dark-toggle');
+  if (btn) btn.textContent = isDark ? '🌙' : '☀️';
+};
+
+window.__onSearch = function (val) {
+  searchQ = val;
+  const any = Object.values(filters).some(s => s.size > 0) || searchQ.trim();
+  document.getElementById('reset-btn').style.display = any ? 'inline-flex' : 'none';
+  applyFilterDisplay();
+};
+
+// ── Filter + search display (no DOM re-render — CSS order + dimmed class) ──
+function getDimmedIds() {
+  const q    = searchQ.trim().toLowerCase();
+  const anyF = Object.values(filters).some(s => s.size > 0);
+  if (!anyF && !q) return new Set();
+
+  const dimmed = new Set();
+  D.insights.forEach(ins => {
+    let passes = true;
+
+    // Demographic filters: insight must overlap with each active dimension
+    ['metro','grade','efs'].forEach(field => {
+      const sel = filters[field];
+      if (!sel || sel.size === 0) return;
+      const ch = ins.charts && ins.charts[field];
+      if (!ch) { passes = false; return; }
+      const _fc    = D.full_corpus[field];
+      const _fcMap = _fc ? Object.fromEntries(_fc.labels.map((l,i)=>[l,_fc.values[i]||0])) : {};
+      // Insight 'matches' if it has at least the corpus-average share of the selected label
+      const overlap = ch.labels.some((lbl, i) => sel.has(lbl) && (ch.values[i]||0) >= (_fcMap[lbl]||0));
+      if (!overlap) passes = false;
+    });
+
+    // Project category filter — same overlap logic as metro/grade/efs
+    const projCatSel = filters['project_category'];
+    if (projCatSel && projCatSel.size > 0) {
+      const ch = ins.charts && ins.charts.project_category;
+      if (!ch) { passes = false; }
+      else {
+        const _fc    = D.full_corpus.project_category;
+        const _fcMap = _fc ? Object.fromEntries(_fc.labels.map((l,i) => [l, _fc.values[i]||0])) : {};
+        const overlap = ch.labels.some((lbl, i) => projCatSel.has(lbl) && (ch.values[i]||0) >= (_fcMap[lbl]||0));
+        if (!overlap) passes = false;
+      }
+    }
+
+    // Funded status filter
+    const fundSel = filters['funding'];
+    if (fundSel && fundSel.size > 0) {
+      const ch = ins.charts && ins.charts.funding;
+      if (!ch) { passes = false; }
+      else {
+        const overlap = ch.labels.some((lbl, i) => fundSel.has(lbl) && (ch.values[i] || 0) > 0);
+        if (!overlap) passes = false;
+      }
+    }
+
+    // Full-text search: title + prose + item names — word-boundary matching
+    // so "mental" doesn't match "developmental"
+    if (q) {
+      const itemText = (ins.item_names || [])
+        .map(n => Array.isArray(n) ? n[0] : String(n)).join(' ');
+      const haystack = [ins.title, ins.what_we_see, ins.why_easy_to_miss, itemText]
+        .join(' ').toLowerCase();
+      const words = q.split(/\s+/).filter(Boolean);
+      const textMatch = words.every(w => {
+        const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp('\\b' + escaped, 'i').test(haystack);
+      });
+      if (!textMatch) passes = false;
+    }
+
+    if (!passes) dimmed.add(ins.id);
+  });
+  return dimmed;
+}
+
+function applyFilterDisplay() {
+  const dimmedIds = getDimmedIds();
+  const anyActive = Object.values(filters).some(s => s.size > 0) || searchQ.trim();
+
+  // Collapse expanded card if it becomes dimmed
+  if (expandedId && dimmedIds.has(expandedId)) collapseCard(expandedId);
+
+  const grid  = document.getElementById('card-grid');
+  const cards = Array.from(grid.querySelectorAll('.summary-card'));
+
+  // Update dim state on all cards
+  cards.forEach(card => {
+    card.classList.toggle('card--dimmed', dimmedIds.has(card.dataset.id));
+    card.style.order = '';
+  });
+
+  if (!anyActive) {
+    sortedInsights().forEach(ins => {
+      const card = document.getElementById('card-' + ins.id);
+      if (card) grid.appendChild(card);
+    });
+    return;
+  }
+
+  // Re-order DOM: matching first (by score desc), non-matching appended after.
+  // appendChild on an existing child moves it — no innerHTML re-render needed.
+  const matching    = cards.filter(c => !dimmedIds.has(c.dataset.id))
+    .sort((a, b) => score(insById(b.dataset.id)) - score(insById(a.dataset.id)));
+  const nonMatching = cards.filter(c => dimmedIds.has(c.dataset.id));
+  [...matching, ...nonMatching].forEach(card => grid.appendChild(card));
+}
+
+// ── Relevance scoring ────────────────────────────────────────────────────────
+function score(ins) {
+  let s = 0;
+  ['metro','grade','efs'].forEach(field => {
+    const sel = filters[field];
+    if (!sel || sel.size === 0) return;
+    const ch = ins.charts && ins.charts[field];
+    if (!ch) return;
+    sel.forEach(v => { const idx = ch.labels.indexOf(v); if (idx >= 0) s += ch.values[idx]; });
+  });
+  const projCatSel2 = filters['project_category'];
+  if (projCatSel2 && projCatSel2.size > 0) {
+    const ch = ins.charts && ins.charts.project_category;
+    if (ch) ch.labels.forEach((lbl, i) => { if (projCatSel2.has(lbl)) s += ch.values[i] || 0; });
+  }
+  const fundSel2 = filters['funding'];
+  if (fundSel2 && fundSel2.size > 0) {
+    const ch = ins.charts && ins.charts.funding;
+    if (ch) ch.labels.forEach((lbl, i) => { if (fundSel2.has(lbl)) s += ch.values[i] || 0; });
+  }
+  return s;
+}
+
+function sortedInsights() {
+  return D.insights.slice().sort((a, b) => {
+    const aMain = !!(a.report_section && a.report_section.includes('main'));
+    const bMain = !!(b.report_section && b.report_section.includes('main'));
+    // 1. All top tiles before all secondary tiles
+    if (aMain !== bMain) return aMain ? -1 : 1;
+    // 2. Within each tier, cross-category before by-group
+    if (a.is_cross !== b.is_cross) return a.is_cross ? -1 : 1;
+    // 3. By-group: sort alphabetically by category name
+    if (!a.is_cross && !b.is_cross) {
+      const aCat = (a.category_bucket || '').toLowerCase();
+      const bCat = (b.category_bucket || '').toLowerCase();
+      if (aCat !== bCat) return aCat < bCat ? -1 : 1;
+    }
+    // 4. Tiebreak: project count descending
+    return b.project_count - a.project_count;
+  });
+}
+
+// ── Signal bar ───────────────────────────────────────────────────────────────
+function sigBar(ratio, color) {
+  const filled = Math.min(5, Math.round(ratio * 5));
+  const blocks = Array.from({length: 5}, (_, i) =>
+    `<span class="sig-block${i < filled ? ' filled' : ''}"${i < filled ? ` style="background:${color}"` : ''}></span>`
+  ).join('');
+  return `<span class="sig-label">Signal</span>
+          <div class="sig-bar">${blocks}</div>
+          <span class="sig-pct">${Math.round(ratio * 100)}%</span>`;
+}
+
+// ── State tile map (inline SVG) ──────────────────────────────────────────────
+function buildStateMap(ins, color) {
+  const ch = ins.charts && ins.charts.state;
+  if (!ch || !(ch.labels || []).length) {
+    return `<div style="font-size:10px;color:var(--subtext);padding:20px 0;text-align:center">No state data</div>`;
+  }
+
+  const pctMap = {};
+  ch.labels.forEach((lbl, i) => { pctMap[lbl] = ch.values[i] || 0; });
+  const maxPct = Math.max(...Object.values(pctMap), 0.001);
+
+  // Full corpus baseline for delta computation
+  const fcState = D.full_corpus.state;
+  const fcMap   = {};
+  if (fcState && fcState.labels) fcState.labels.forEach((l, i) => { fcMap[l] = fcState.values[i] || 0; });
+
+  // Compute delta per state and identify top outliers (up to 6)
+  const deltaPp = {};
+  Object.keys(STATE_GRID).forEach(a => { deltaPp[a] = ((pctMap[a]||0) - (fcMap[a]||0)) * 100; });
+  const topOutliers = new Set(
+    Object.entries(deltaPp)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+      .slice(0, 14)
+      .filter(([,d]) => Math.abs(d) >= 0.5)
+      .map(([k]) => k)
+  );
+
+  const CELL = 24, GAP = 2, COLS = 13, ROWS = 8;
+  const W = COLS * (CELL + GAP), H = ROWS * (CELL + GAP);
+
+  let tiles = '';
+  Object.entries(STATE_GRID).forEach(([abbr, pos]) => {
+    const pct       = pctMap[abbr] || 0;
+    const intensity = pct / maxPct;
+    const fill      = hexToRgba(color, 0.07 + intensity * 0.87);
+    const textFill  = intensity > 0.55 ? '#fff' : 'var(--subtext)';
+    const x = pos.c * (CELL + GAP), y = pos.r * (CELL + GAP);
+    const d = deltaPp[abbr];
+    const dStr = (d >= 0 ? '+' : '') + d.toFixed(1) + 'pp';
+    const hoverTip = `${abbr}: ${(pct*100).toFixed(2)}% of insight  (${dStr} vs population)`;
+
+    tiles += `<g data-tip="${hoverTip}" data-mapidx="${Object.keys(STATE_GRID).indexOf(abbr)}" style="opacity:0;transition:opacity 0.18s ease">`;
+    tiles += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${fill}"/>`;
+
+    if (topOutliers.has(abbr)) {
+      // Two-line: abbrev + delta
+      const dColor = d > 0 ? '#0D8C5E' : '#C94C1F';
+      const dFill  = intensity > 0.6 ? (d > 0 ? '#6FFFD0' : '#FFAA88') : dColor;
+      tiles += `<text x="${x+CELL/2}" y="${y+CELL/2-1}" font-size="6" text-anchor="middle"`
+             + ` fill="${textFill}" font-family="'Helvetica Neue',Arial,sans-serif" font-weight="700">${abbr}</text>`;
+      tiles += `<text x="${x+CELL/2}" y="${y+CELL/2+7}" font-size="5" text-anchor="middle"`
+             + ` fill="${dFill}" font-family="'Helvetica Neue',Arial,sans-serif" font-weight="700">${dStr}</text>`;
+    } else {
+      tiles += `<text x="${x+CELL/2}" y="${y+CELL/2+3.5}" font-size="6.5" text-anchor="middle"`
+             + ` fill="${textFill}" font-family="'Helvetica Neue',Arial,sans-serif" font-weight="600">${abbr}</text>`;
+    }
+    tiles += `</g>`;
+  });
+
+  const svgStr = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block"
+               aria-label="Project distribution by state for ${esc(ins.title)}">${tiles}</svg>`;
+  return `<div class="map-zoom-container" style="position:relative;overflow:hidden;min-height:230px">
+    <div style="position:absolute;top:4px;right:4px;z-index:2;display:flex;gap:3px">
+      <button class="map-zoom-btn" data-mapzoom="in"  title="Zoom in">＋</button>
+      <button class="map-zoom-btn" data-mapzoom="out" title="Zoom out">−</button>
+    </div>
+    <div class="map-svg-wrap" style="transform-origin:top left">${svgStr}</div>
+  </div>`;
+}
+
+// ── Items table ──────────────────────────────────────────────────────────────
+function itemsTableHTML(ins) {
+  if (!ins.item_names || !ins.item_names.length) return '';
+  const rows = ins.item_names.map(item => {
+    const name = Array.isArray(item) ? item[0] : item;
+    const qty  = Array.isArray(item) ? item[1] : '';
+    return `<tr><td>${esc(name)}</td><td>${qty !== '' ? Number(qty).toLocaleString() : '—'}</td></tr>`;
+  }).join('');
+  return `
+<div class="items-table-wrap">
+  <table class="items-table">
+    <thead><tr><th>Top Items</th><th>Qty</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// ── Card HTML ────────────────────────────────────────────────────────────────
+function renderCards() {
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = sortedInsights().map(ins => cardHTML(ins)).join('');
+
+  document.querySelectorAll('.summary-card').forEach(card => {
+    const id = card.dataset.id;
+    card.addEventListener('click', e => {
+      if (e.target.closest('.detail-panel') || e.target.closest('.expand-btn') || e.target.closest('a')) return;
+      toggleCard(id);
+    });
+    card.querySelector('.expand-btn').addEventListener('click', () => toggleCard(id));
+  });
+
+  // Staggered tile fade-in, then signal bar fill left-to-right
+  document.querySelectorAll('.summary-card').forEach((card, i) => {
+    const tileDelay = Math.min(i * 45, 450);
+    card.style.animationDelay = tileDelay + 'ms';
+
+    const bars = Array.from(card.querySelectorAll('.sig-block.filled'));
+    bars.forEach(bar => { bar.style.transform = 'scaleX(0)'; bar.style.transformOrigin = 'left center'; });
+    bars.forEach((bar, j) => {
+      setTimeout(() => {
+        bar.style.transition = 'transform 0.16s ease';
+        bar.style.transform  = 'scaleX(1)';
+      }, tileDelay + 380 + j * 70);
+    });
+  });
+
+  handleAnchor();
+}
+
+function cardHTML(ins) {
+  const color  = catColor(ins);
+  const cat    = displayCategory(ins);
+  const secLbl = sectionLabel(ins);
+  const b2val  = ins.sep1_val ? `+${ins.sep1_val}pp` : '—';
+  const b4val  = `${(ins.mean_topic_share * 100).toFixed(0)}%`;
+
+  return `
+<article class="summary-card" id="card-${ins.id}" data-id="${ins.id}" style="--cat-color:${color}">
+  <div class="card-header">
+    <div class="card-badges">
+      <span class="cat-badge" style="color:${color}">${esc(cat)}</span>
+      ${secLbl ? `<span class="section-badge">${esc(secLbl)}</span>` : ''}
+    </div>
+    <button class="expand-btn" aria-label="Expand insight"><span class="expand-icon">▼</span></button>
+  </div>
+  <div class="card-body">
+    <h2 class="insight-title">${esc(ins.title)}</h2>
+    <div class="signal-row">${sigBar(ins.verification_ratio, color)}</div>
+  </div>
+  <div class="card-footer">
+    <div class="card-stat">
+      <span class="stat-val">${Number(ins.project_count).toLocaleString()}</span>
+      <span class="stat-lbl">projects</span>
+    </div>
+    <div class="card-stat">
+      <span class="stat-val" title="${esc(ins.sep1_lbl||'')}" style="color:${color}">${b2val}</span>
+      <span class="stat-lbl" title="${esc(ins.sep1_lbl||'')}">${esc(ins.sep1_lbl || 'vs population')}</span>
+    </div>
+    ${ins.sep2_lbl ? `<div class="card-stat">
+      <span class="stat-val" style="color:${color}">+${ins.sep2_val}pp</span>
+      <span class="stat-lbl">${esc(ins.sep2_lbl)}</span>
+    </div>` : ''}
+    <div class="card-stat">
+      <span class="stat-val">${b4val}</span>
+      <span class="stat-lbl">avg topic fit</span>
+    </div>
+  </div>
+  <div class="detail-panel" id="detail-${ins.id}">
+    ${detailHTML(ins, color)}
+  </div>
+</article>`;
+}
+
+function detailHTML(ins, color) {
+  const fldLabels = {
+    metro: 'Metro Type', grade: 'Grade Level', efs: 'EFS Classification',
+    race: 'Student Race', posting: 'Posting Period', cost_distr: 'Project Cost',
+    funding: 'Funded Status',
+  };
+
+  const canvasItem = (field, h) => {
+    const ch = ins.charts && ins.charts[field];
+    if (!ch || !(ch.labels || []).length) return '';
+    return `<div class="chart-item">
+      <div class="chart-title">${fldLabels[field]}</div>
+      <div class="chart-wrap" style="height:${h}px">
+        <canvas id="cv-${ins.id}-${field}" role="img" aria-label="${fldLabels[field]} for ${esc(ins.title)}"></canvas>
+      </div>
+    </div>`;
+  };
+
+  const barH = field =>
+    Math.max(130, ((ins.charts || {})[field]?.labels?.length || 4) * 30 + 50);
+
+  const hasCat   = !!(ins.charts?.item_category?.labels?.length);
+  const hasState = !!(ins.charts?.state?.labels?.length);
+  const catH     = Math.max(160, (ins.charts?.item_category?.labels?.length || 5) * 24 + 40);
+
+  // row 1: map | posting
+  // row 2: grade | race
+  // row 3: efs   | metro
+  // row 4: resource categories | cost
+  const chartsHTML = [
+    hasState ? `<div class="chart-item">
+      <div class="chart-title">By State</div>
+      <div class="state-map-wrap">${buildStateMap(ins, color)}</div>
+    </div>` : '',
+    canvasItem('posting',    barH('posting')),
+    canvasItem('grade',      barH('grade')),
+    canvasItem('race',       barH('race')),
+    canvasItem('efs',        barH('efs')),
+    canvasItem('metro',      barH('metro')),
+    hasCat ? `<div class="chart-item">
+      <div class="chart-title">Resource Categories</div>
+      <div class="chart-wrap" style="height:${catH}px">
+        <canvas id="cv-${ins.id}-item_category" role="img" aria-label="Resource categories for ${esc(ins.title)}"></canvas>
+      </div>
+    </div>` : '',
+    `<div style="display:flex;flex-direction:column;gap:1rem">
+      ${canvasItem('cost_distr', barH('cost_distr'))}
+      ${canvasItem('funding',    barH('funding'))}
+    </div>`,
+  ].join('');
+
+  const hasCharts = hasCat || hasState ||
+    ['grade','race','efs','metro','posting','cost_distr','funding'].some(f => ins.charts?.[f]?.labels?.length > 0);
+
+  return `
+<div class="detail-inner">
+  <div class="detail-prose">
+    ${ins.what_we_see ? `<div class="prose-section">
+      <div class="prose-label">What we're seeing</div>
+      <p class="prose-text">${esc(ins.what_we_see)}</p>
+    </div>` : ''}
+    ${ins.why_easy_to_miss ? `<div class="prose-section">
+      <div class="prose-label">Why this is easy to miss</div>
+      <p class="prose-text">${esc(ins.why_easy_to_miss)}</p>
+    </div>` : ''}
+  </div>
+  ${hasCharts ? `
+  <button class="charts-toggle" id="chartstoggle-${ins.id}" onclick="window.__toggleCharts('${ins.id}')">
+    Hide charts ▲
+  </button>
+  <div class="charts-panel" id="chartspanel-${ins.id}">
+    <div class="chart-legend" style="margin-bottom:0.6rem">
+      <span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>This insight</span>
+      <span class="legend-item"><span class="legend-tick"></span>Population baseline</span>
+      <span class="legend-item"><span class="legend-delta-up">+Xpp</span>&nbsp;<span class="legend-delta-down">−Xpp</span>&nbsp;vs full population</span>
+    </div>
+    <div class="charts-grid">
+      ${chartsHTML}
+    </div>
+    ${itemsTableHTML(ins)}
+  </div>` : ''}
+</div>
+<div class="detail-footer">
+  <div class="trust-section">
+    <button class="trust-btn" onclick="window.__toggleTrust('${ins.id}')">Methods &amp; confidence ▼</button>
+    <div class="trust-panel" id="trust-${ins.id}" style="display:none">
+      <table class="trust-table">
+        <tr><td>Signal score</td><td>${Math.round(ins.verification_ratio*100)}% verified topics</td></tr>
+        <tr><td>Supporting projects</td><td>${Number(ins.project_count).toLocaleString()}</td></tr>
+        <tr><td>Verified topics</td><td>${ins.verified_topic_count}</td></tr>
+        <tr><td>Avg topic fit</td><td>${(ins.mean_topic_share*100).toFixed(1)}%</td></tr>
+        <tr><td>TVD vs population (mean)</td><td>${(ins.tvd.mean||0).toFixed(3)}</td></tr>
+        <tr><td>TVD metro / grade / EFS / race</td><td>${(ins.tvd.metro||0).toFixed(3)} / ${(ins.tvd.grade||0).toFixed(3)} / ${(ins.tvd.efs||0).toFixed(3)} / ${(ins.tvd.race||0).toFixed(3)}</td></tr>
+        <tr><td>Run ID</td><td>${esc(ins.source_run_id || D.meta.run_id)}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="explore-row">
+    ${ins.looker_url ? `<a class="explore-btn" href="${esc(ins.looker_url)}" target="_blank" rel="noopener" style="background:${color}">
+      Explore ${Number(ins.project_count).toLocaleString()} project essays →
+    </a>` : ''}
+    <button class="copy-link-btn" id="copylink-${ins.id}" onclick="window.__copyLink('${ins.id}')">Copy insight link</button>
+  </div>
+</div>`;
+}
+
+// ── Expand / Collapse ────────────────────────────────────────────────────────
+function toggleCard(id) {
+  if (expandedId === id) { collapseCard(id); return; }
+
+  if (expandedId) {
+    // Collapse current card first; expand new one after its animation finishes
+    collapseCard(expandedId);
+    const _id = id;
+    setTimeout(() => {
+      const el = document.querySelector(`[data-id="${_id}"]`);
+      if (el) expandCard(_id, el, true);
+    }, 310);
+  } else {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) expandCard(id, el, true);
+  }
+}
+
+function expandCard(id, el, scroll) {
+  expandedId = id;
+  el.classList.add('expanded');
+  history.replaceState(null, '', '#' + id);
+
+  const detail = document.getElementById('detail-' + id);
+
+  // Animate height open
+  detail.style.transition = 'max-height 0.32s ease';
+  detail.style.maxHeight  = detail.scrollHeight + 'px';
+  setTimeout(() => {
+    detail.style.transition = '';
+    detail.style.maxHeight  = 'none';   // allow free resize after open
+    detail.style.overflow   = '';
+  }, 340);
+
+  if (scroll) {
+    // Scroll to approximate position immediately, then correct once animation settles
+    const _scrollTo = () => {
+      // Compute offset from actual sticky bar heights so the card top
+      // appears just below the controls bar regardless of hero content size.
+      const hero   = document.getElementById('hero');
+      const cb     = document.getElementById('controls-bar');
+      const offset = (hero ? hero.offsetHeight : 0) + (cb ? cb.offsetHeight : 0) + 14;
+      const y      = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({top: y, behavior: 'smooth'});
+    };
+    setTimeout(_scrollTo, 60);
+    setTimeout(_scrollTo, 380);
+  }
+
+  // Render charts once, then stagger-fade each chart-item in (Extra 1)
+  if (!chartsRendered[id]) {
+    chartsRendered[id] = true;
+    el.querySelectorAll('.chart-item').forEach(item => { item.style.opacity = '0'; });
+    setTimeout(() => {
+      lazyRenderCharts(id);
+      el.querySelectorAll('.chart-item').forEach((item, i) => {
+        setTimeout(() => {
+          item.style.transition = 'opacity 0.22s ease';
+          item.style.opacity    = '1';
+        }, i * 55);
+      });
+    }, 600);
+  }
+}
+
+function collapseCard(id) {
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (!el) return;
+  const detail = document.getElementById('detail-' + id);
+
+  // Lock current height, then animate to 0
+  detail.style.overflow   = 'hidden';
+  detail.style.maxHeight  = detail.scrollHeight + 'px';
+  void detail.offsetHeight;                        // force reflow
+  detail.style.transition = 'max-height 0.28s ease';
+  detail.style.maxHeight  = '0px';
+  setTimeout(() => { detail.style.transition = ''; }, 290);
+
+  el.classList.remove('expanded');
+  if (expandedId === id) {
+    expandedId = null;
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
+// ── Charts toggle ────────────────────────────────────────────────────────────
+window.__toggleCharts = function (id) {
+  const panel  = document.getElementById('chartspanel-' + id);
+  const toggle = document.getElementById('chartstoggle-' + id);
+  if (!panel) return;
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    toggle.textContent  = 'Hide charts ▲';
+    if (!chartsRendered[id]) { chartsRendered[id] = true; lazyRenderCharts(id); }
+  } else {
+    panel.style.display = 'none';
+    toggle.textContent  = 'View supporting charts ▼';
+  }
+};
+
+window.__toggleTrust = function (id) {
+  const p = document.getElementById('trust-' + id);
+  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+};
+
+// ── Baseline + delta annotation plugin ──────────────────────────────────────
+// Draws: (1) tick mark at baseline value, (2) ±Xpp delta label per bar.
+const BASELINE_PLUGIN = {
+  id: 'bl',
+  afterDatasetsDraw(chart) {
+    const bl = chart.options.plugins.bl;
+    if (!bl) return;
+
+    const ctx    = chart.ctx;
+    const xs     = chart.scales.x;
+    const ys     = chart.scales.y;
+    const isRace = chart.options.plugins._isRace || false;
+    const data   = chart.data.datasets[0]?.data || [];
+
+    bl.forEach((baseVal, i) => {
+      if (baseVal == null) return;
+
+      const insVal = data[i] ?? 0;
+      const y      = ys.getPixelForValue(i);
+      const h      = ys.height / ((ys.ticks?.length ?? 5) * 2.5);
+      const bx     = xs.getPixelForValue(baseVal);
+
+      // Baseline tick mark
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(bx, y - h); ctx.lineTo(bx, y + h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.lineWidth   = 1.5;
+      ctx.stroke();
+      ctx.restore();
+
+      // Delta label (±Xpp)
+      const delta = isRace ? insVal - baseVal : (insVal - baseVal) * 100;
+      if (Math.abs(delta) < 0.4) return;
+
+      const sign    = delta > 0 ? '+' : '−';
+      const label   = `${sign}${Math.abs(delta).toFixed(1)}pp`;
+      const fgColor = delta > 0 ? '#0D8C5E' : '#C94C1F';
+      const barX    = xs.getPixelForValue(insVal);
+      const labelX  = Math.max(barX, bx) + 4;
+      if (labelX > xs.right - 4) return;       // skip if it would clip
+
+      ctx.save();
+      ctx.font         = 'bold 7.5px "Helvetica Neue", Arial, sans-serif';
+      ctx.fillStyle    = fgColor;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, labelX, y);
+      ctx.restore();
+    });
+  }
+};
+
+// ── Chart rendering ──────────────────────────────────────────────────────────
+function lazyRenderCharts(id) {
+  const ins = D.insights.find(i => i.id === id);
+  if (!ins) return;
+  const color = catColor(ins);
+
+  // Demographic bar charts (metro, grade, efs, race)
+  ['metro','grade','efs','race','posting','cost_distr','funding'].forEach(field => {
+    const ch     = ins.charts && ins.charts[field];
+    if (!ch) return;
+    const canvas = document.getElementById(`cv-${id}-${field}`);
+    if (!canvas || canvas._chartInst) return;
+
+    const isRace = field === 'race';
+
+    // For grade, reorder to developmental sequence (PreK-2 at top)
+    let labels   = ch.labels;
+    let values   = ch.values;
+    let baseline = ch.baseline;
+    if (field === 'grade') {
+      const gradeIdx = ch.labels.map((_, i) => i)
+        .sort((a, b) => {
+          const ai = GRADE_ORDER.indexOf(ch.labels[a]);
+          const bi = GRADE_ORDER.indexOf(ch.labels[b]);
+          return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+        });
+      labels   = gradeIdx.map(i => ch.labels[i]);
+      values   = gradeIdx.map(i => ch.values[i]);
+      baseline = ch.baseline ? gradeIdx.map(i => ch.baseline[i]) : ch.baseline;
+    }
+
+    // Uniform fill — delta communicated via ±pp annotations, not bar colour
+    const barBg = color + 'CC';
+
+    canvas._chartInst = new Chart(canvas, {
+      type: 'bar',
+      plugins: [BASELINE_PLUGIN],
+      data: {
+        labels: labels,
+        datasets: [{
+          data:            values,
+          backgroundColor: barBg,
+          borderColor:     color,
+          borderWidth:     1,
+          borderRadius:    3,
+        }],
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        layout: { padding: { right: 46 } },   // room for ±Xpp labels
+        plugins: {
+          legend:  { display: false },
+          bl:      baseline,
+          _isRace: isRace,
+          tooltip: {
+            callbacks: {
+              label: ctx => isRace
+                ? ` ${ctx.raw.toFixed(1)}%`
+                : ` ${(ctx.raw * 100).toFixed(1)}%`
+            }
+          },
+        },
+        scales: {
+          x: {
+            max: Math.min(ch.xmax || 1, isRace ? 100 : 1),
+            grid:  { color: '#ece9e1', lineWidth: 0.5 },
+            ticks: { font:{size:10}, color:'#bbb', maxTicksLimit:4,
+                     callback: v => isRace ? v.toFixed(0)+'%' : (v*100).toFixed(0)+'%' },
+            border: { display: false },
+          },
+          y: {
+            grid:  { display: false },
+            ticks: { font:{size:10}, color:'#444', crossAlign:'far' },
+            border: { display: false },
+          },
+        },
+      },
+    });
+  });
+
+  // Resource category chart — sorted desc (largest at top) + corpus baseline overlay
+  const chCat = ins.charts && ins.charts.item_category;
+  if (chCat && (chCat.labels||[]).length) {
+    const canvas = document.getElementById(`cv-${id}-item_category`);
+    if (canvas && !canvas._chartInst) {
+      // Reverse so the largest category sits at the top of the chart
+      const catLabels   = [...chCat.labels].reverse();
+      const catValues   = [...chCat.values].reverse();
+      const catBaseline = chCat.baseline ? [...chCat.baseline].reverse() : null;
+
+      canvas._chartInst = new Chart(canvas, {
+        type: 'bar',
+        plugins: [BASELINE_PLUGIN],
+        data: {
+          labels: catLabels,
+          datasets: [{
+            data:            catValues,
+            backgroundColor: color + 'CC',
+            borderColor:     color,
+            borderWidth:     1,
+            borderRadius:    3,
+          }],
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          layout: { padding: { right: 46 } },
+          plugins: {
+            legend:  { display: false },
+            bl:      catBaseline,
+            _isRace: false,
+            tooltip: {
+              callbacks: {
+                label: ctx => {
+                  const pct = (ctx.raw * 100).toFixed(1);
+                  const bl  = catBaseline && catBaseline[ctx.dataIndex];
+                  if (bl != null) {
+                    const d    = (ctx.raw - bl) * 100;
+                    const sign = d >= 0 ? '+' : '';
+                    return ` ${pct}% of items by qty  (${sign}${d.toFixed(1)}pp vs corpus)`;
+                  }
+                  return ` ${pct}% of insight items (not in corpus top 10)`;
+                }
+              }
+            },
+          },
+          scales: {
+            x: {
+              max:   Math.min(chCat.xmax || 1, 1),
+              grid:  { color:'#ece9e1', lineWidth:0.5 },
+              ticks: { font:{size:10}, color:'#bbb', maxTicksLimit:4,
+                       callback: v => (v*100).toFixed(0)+'%' },
+              border: { display:false },
+            },
+            y: {
+              grid:  { display:false },
+              ticks: { font:{size:10}, color:'#444', crossAlign:'far' },
+              border: { display:false },
+            },
+          },
+        },
+      });
+    }
+  }
+
+  // ── State map fade-in (matches 1000ms bar chart duration) ─────────────────
+  const mapTiles = document.querySelectorAll(`#detail-${id} [data-mapidx]`);
+  if (mapTiles.length) {
+    const GROUP    = 8;       // states per wave — lower = more state-by-state feel
+    const TOTAL_MS = 600;
+    const waves    = Math.ceil(mapTiles.length / GROUP);
+    const step     = TOTAL_MS / waves;
+    mapTiles.forEach(tile => {
+      const wave = Math.floor(Number(tile.dataset.mapidx) / GROUP);
+      setTimeout(() => { tile.style.opacity = '1'; }, wave * step);
+    });
+  }
+}
+
+
+// ── Anchor handling ──────────────────────────────────────────────────────────
+function handleAnchor() {
+  const id = window.location.hash.slice(1);
+  if (id && id !== expandedId) {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) setTimeout(() => expandCard(id, el, true), 80);
+  }
+}
+
+window.__copyLink = function (id) {
+  const url = location.origin + location.pathname + '#' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copylink-' + id);
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy insight link'; }, 1600); }
+  }).catch(() => { prompt('Copy this link:', url); });
+};
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+function positionControlsBar() {
+  const hero = document.getElementById('hero');
+  const cb   = document.getElementById('controls-bar');
+  if (hero && cb) cb.style.top = hero.offsetHeight + 'px';
+}
+
+renderHero();
+positionControlsBar();
+renderControls();
+renderCards();
+window.addEventListener('hashchange', handleAnchor);
+// ── Floating tooltip for [data-tip] elements ─────────────────────────────
+const _tip = document.createElement('div');
+_tip.id = 'map-tooltip';
+document.body.appendChild(_tip);
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('[data-tip]');
+  if (el) { _tip.textContent = el.dataset.tip; _tip.style.opacity = '1'; }
+  else     { _tip.style.opacity = '0'; }
+});
+document.addEventListener('mousemove', e => {
+  const lw = _tip.offsetWidth || 200;
+  _tip.style.left = Math.min(e.clientX + 14, window.innerWidth - lw - 12) + 'px';
+  _tip.style.top  = (e.clientY - 36) + 'px';
+});
+
+// ── Map zoom ──────────────────────────────────────────────────────────────
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-mapzoom]');
+  if (!btn) return;
+  const wrap = btn.closest('.map-zoom-container')?.querySelector('.map-svg-wrap');
+  if (!wrap) return;
+  const cur  = parseFloat(wrap.style.transform?.match(/scale\(([\d.]+)\)/)?.[1] ?? '1');
+  const next = Math.min(Math.max(cur + (btn.dataset.mapzoom === 'in' ? 0.25 : -0.25), 0.5), 3);
+  wrap.style.transition = 'transform 0.18s ease';
+  wrap.style.transform  = `scale(${next})`;
+});
+
+window.addEventListener('resize', positionControlsBar);
+
+})();
+</script>
+</body>
+</html>
