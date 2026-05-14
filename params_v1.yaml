@@ -60,16 +60,16 @@ enrichment:
   force_reclassify: true                # When true, re-run Pass B framing classification even if a cached framing_map.csv with a matching taxonomy hash already exists.
 
 analysis:
-  group_by: project_category   # Column used to split the corpus into analysis groups. Downstream code expects a scalar field name.
+  group_by: industry   # Column used to split the corpus into analysis groups. Downstream code expects a scalar field name.
   min_group_projects: 20        # Minimum number of projects required for a group to be included in analysis.
   min_coverage: 4               # Minimum number of groups a cross-group theme must appear in to be retained.
   topic_assignment_threshold: 0.30  # Minimum topic_share required to link a project to a topic in the project-topic bridge table.
   nmf_min_shared: 3             # Minimum number of shared top terms required to count two topics as overlapping for cross-group theme detection.
   cat_tfidf_top_n: 30           # Number of top TF-IDF terms to surface per group in category_tfidf.csv.
   review_group: null            # Optional: restrict the full analysis run to a single group value. null = run all eligible groups.
-  exclude_groups: []            # List of group values to skip entirely. Applied before any analysis step.
-  synthesis_max_workers: 8      # Maximum number of concurrent threads in the per-group synthesis ThreadPoolExecutor.
-  labeling_max_workers: 8       # Maximum number of concurrent threads in the per-topic labeling ThreadPoolExecutor.
+  exclude_groups: ["__NA__"]    # List of group values to skip entirely. Applied before any analysis step.
+  synthesis_max_workers: 20     # Maximum number of concurrent threads in the per-group synthesis ThreadPoolExecutor.
+  labeling_max_workers: 20      # Maximum number of concurrent threads in the per-topic labeling ThreadPoolExecutor.
 
   bins: []
   # Time-slice bucketing applied to posted_date before grouping.
@@ -107,6 +107,11 @@ analysis:
     school_is_low_income:          "low-income vs non-low-income schools"
     efs_x_grade_band:              "efs waterfall interacted with grade band"
     funding_status_x_metro:        "funded/expired interacted with metro type"
+    specialty_subject:             "specialized subject/content domains inferred from project language (CTE, AI/coding, intervention, multilingual, SEL, applied science)"
+    industry:                      "workforce-development industry signals inferred from project language (health, agriculture, green jobs, transportation, robotics, business, media, public safety)"
+    safety_justice:                "school safety, discipline, attendance, and justice-adjacent context signals inferred from project language (community/gang violence exposure, justice-involved families, alternative schools, exclusionary discipline, mentoring, attendance language)"
+    future_framing:                "forward-looking framing around careers, future readiness, AI/coding pathways, and technical skill-building inferred from project language"
+    framing_context:               "situational framing inferred from project language — student identity and belonging, accommodation and access, scarcity, safety, experiential learning, expressive production, and family context"
 
   verification:
     by_group_min_source_topics: 3  # Verify by-group insights only when they cite at least this many source topics. Cross-group insights are always verified regardless of topic count.
@@ -118,8 +123,8 @@ analysis:
     small_slice_cutoff: 125      # If median group size falls below this value, small-slice mode activates and uses small_slice_topic_cap instead of nmf.n_components.
     small_slice_topic_cap: 8     # Maximum NMF topic count when small-slice mode is active.
     min_projects_per_topic: 15   # Minimum projects per NMF topic. Used by choose_n_components() in utils.py as the divisor in max(4, n_docs // min_projects_per_topic).
-    cross_min_insights: 8        # Minimum number of cross-group insights requested from the synthesis prompt.
-    cross_max_insights: 16       # Maximum number of cross-group insights requested from the synthesis prompt.
+    cross_min_insights: 4        # Minimum number of cross-group insights requested from the synthesis prompt.
+    cross_max_insights: 10       # Maximum number of cross-group insights requested from the synthesis prompt.
     per_group_min_insights: 2    # Minimum number of per-group insights requested from the synthesis prompt.
     per_group_max_insights: 4    # Maximum number of per-group insights requested from the synthesis prompt.
 
