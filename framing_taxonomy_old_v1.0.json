@@ -3708,7 +3708,7 @@
   {
     "category": "subject_explicit_ai_tools_classroom_use",
     "tier": "analysis",
-    "description": "Namespace: subject. Tag direct use, teaching, or evaluation of explicit AI tools in classroom learning or instructional work. This is the high-precision AI anchor category. Standalone 'AI', named AI products, LLM/chatbot terms, and machine-learning terms may qualify; standalone 'bot' or 'intelligence' do NOT qualify. DO NOT tag generic coding, robotics, digital citizenship, device access, adaptive software, or edtech unless AI, generative AI, LLMs, chatbots, prompting, machine learning, or a named AI product is explicit.",
+    "description": "Namespace: subject. Tag direct use, teaching, or evaluation of explicit AI tools in classroom learning or instructional work. This is the high-precision AI anchor category. DO NOT tag generic coding, robotics, digital citizenship, device access, adaptive software, or edtech unless AI, generative AI, LLMs, chatbots, prompting, machine learning, or a named AI product is explicit.",
     "examples": [
       "artificial intelligence",
       "generative AI",
@@ -3728,18 +3728,7 @@
       "Curipod",
       "Canva AI",
       "Grammarly AI",
-      "Copilot",
-      "AI",
-      "OpenAI",
-      "Claude",
-      "Gemini",
-      "Perplexity",
-      "generative",
-      "AI tools",
-      "AI chatbot",
-      "prompting",
-      "prompt",
-      "AI prompt"
+      "Copilot"
     ],
     "counter_examples": [
       "coding",
@@ -3753,19 +3742,7 @@
       "adaptive software",
       "personalized learning",
       "computer science",
-      "makerspace",
-      "bot",
-      "bots",
-      "intelligence",
-      "smart",
-      "algorithms",
-      "digital",
-      "technology",
-      "edtech",
-      "automation",
-      "robot",
-      "robots",
-      "plagiarism"
+      "makerspace"
     ],
     "target_coverage_pct": "0.1-2%",
     "contrast_with": "subject_coding_computer_science",
@@ -3774,7 +3751,7 @@
   {
     "category": "subject_ai_assisted_creation_production",
     "tier": "analysis",
-    "description": "Namespace: subject. Tag explicit AI-assisted creation, drafting, generation, design, editing, or production of writing, images, media, code, presentations, or other outputs. Named generative-creation products qualify when they are clearly AI creation tools. DO NOT tag general media production, graphic design, creative writing, presentation software, or Canva-style production unless AI use is explicit.",
+    "description": "Namespace: subject. Tag student or teacher use of AI to create, draft, generate, design, edit, or produce writing, images, media, code, presentations, or other outputs. DO NOT tag general media production, graphic design, creative writing, or Canva-style production unless AI use is explicit.",
     "examples": [
       "AI image generator",
       "AI writing tool",
@@ -3787,18 +3764,7 @@
       "AI generated art",
       "AI generated writing",
       "prompt based creation",
-      "generative art",
-      "DALL-E",
-      "Dalle",
-      "Midjourney",
-      "Adobe Firefly",
-      "Firefly",
-      "Runway",
-      "Suno",
-      "AI art",
-      "AI image",
-      "AI writing",
-      "AI generated content"
+      "generative art"
     ],
     "counter_examples": [
       "graphic design",
@@ -3810,16 +3776,7 @@
       "digital art",
       "media production",
       "student publication",
-      "presentation software",
-      "generator",
-      "image",
-      "writing",
-      "video",
-      "music",
-      "design",
-      "presentation",
-      "art",
-      "unless AI-specific"
+      "presentation software"
     ],
     "target_coverage_pct": "0.1-2%",
     "contrast_with": "framing_expressive_creative_production",
@@ -3828,7 +3785,7 @@
   {
     "category": "subject_ai_tutoring_personalized_feedback",
     "tier": "analysis",
-    "description": "Namespace: subject. Tag AI-specific tutoring, coaching, personalization, feedback, or practice support, including named AI tutoring systems. DO NOT tag generic adaptive software, personalized learning, intervention programs, or edtech platforms unless AI or a named AI tutoring/feedback tool is explicit.",
+    "description": "Namespace: subject. Tag AI-specific tutoring, coaching, personalization, feedback, or practice support. DO NOT tag generic adaptive software, personalized learning, intervention programs, or edtech platforms unless AI or a named AI tutoring/feedback tool is explicit.",
     "examples": [
       "AI tutor",
       "AI tutoring",
@@ -3839,9 +3796,7 @@
       "AI math tutor",
       "chatbot tutor",
       "AI practice",
-      "AI coach",
-      "Khanmigo",
-      "AI learning coach"
+      "AI coach"
     ],
     "counter_examples": [
       "adaptive software",
@@ -3852,14 +3807,7 @@
       "Khan Academy",
       "intervention software",
       "online practice",
-      "digital practice",
-      "tutor",
-      "tutoring",
-      "coach",
-      "feedback",
-      "personalized",
-      "adaptive",
-      "unless AI-specific"
+      "digital practice"
     ],
     "target_coverage_pct": "0.1-2%",
     "contrast_with": "framing_catch_up_remediation",
@@ -3868,7 +3816,7 @@
   {
     "category": "context_ai_policy_integrity_classroom_management",
     "tier": "analysis",
-    "description": "Namespace: context. Tag classroom policy, integrity, privacy, acceptable-use, cheating/plagiarism, citation, or management concerns that explicitly involve AI tools or AI-generated work. DO NOT tag general academic integrity, plagiarism, privacy, phone management, digital citizenship, or locked storage unless AI is explicit.",
+    "description": "Namespace: context. Tag classroom policy, integrity, privacy, acceptable-use, or management concerns that explicitly involve AI tools or AI-generated work. DO NOT tag general academic integrity, plagiarism, privacy, phone management, digital citizenship, or locked storage unless AI is explicit.",
     "examples": [
       "AI policy",
       "responsible AI use",
@@ -3879,12 +3827,7 @@
       "AI detection",
       "AI citation",
       "AI cheating",
-      "AI generated work",
-      "AI hallucination",
-      "AI bias",
-      "AI ethics",
-      "responsible AI",
-      "AI classroom policy"
+      "AI generated work"
     ],
     "counter_examples": [
       "digital citizenship",
@@ -3895,15 +3838,7 @@
       "academic integrity",
       "plagiarism",
       "cell phone policy",
-      "device distraction",
-      "policy",
-      "integrity",
-      "privacy",
-      "bias",
-      "ethics",
-      "cheating",
-      "citation",
-      "unless AI-specific"
+      "device distraction"
     ],
     "target_coverage_pct": "0.1-2%",
     "contrast_with": "framing_ai_literacy_responsible_use",
@@ -3945,24 +3880,7 @@
       "broken furniture",
       "worn out books",
       "restock supplies",
-      "classroom supplies running out",
-      "technology",
-      "device",
-      "devices",
-      "laptop",
-      "chromebook",
-      "headphone",
-      "headphones",
-      "tablet",
-      "printer",
-      "computer",
-      "microsoft",
-      "samsung",
-      "alexa",
-      "skype",
-      "digital access",
-      "technology access",
-      "unless reliability, replacement, repair, charging, connectivity, or continuity is explicit"
+      "classroom supplies running out"
     ],
     "target_coverage_pct": "3-10%",
     "contrast_with": "framing_chronic_scarcity; framing_maintenance_replacement; framing_triage_repair; subject_coding_computer_science",
@@ -4207,12 +4125,7 @@
       "greenhouse",
       "weather unit",
       "climate curriculum",
-      "outdoor learning",
-      "quarantine",
-      "covid quarantine",
-      "pandemic quarantine",
-      "heater",
-      "heating unless heat/cold disruption or air-quality need is explicit"
+      "outdoor learning"
     ],
     "target_coverage_pct": "0.2-3%",
     "contrast_with": "subject_climate_environmental_science_learning",
@@ -4308,53 +4221,10 @@
       "clean air",
       "sanitation",
       "sports safety",
-      "science safety",
-      "goggles",
-      "safety glasses",
-      "protective eyewear",
-      "food safety",
-      "internet safety",
-      "safety equipment unless emergency/security protocol is explicit"
+      "science safety"
     ],
     "target_coverage_pct": "0.2-3%",
     "contrast_with": "framing_safety_protection_language",
     "rationale": "Separates physical school-safety/security protocols from broad safety, regulation, sanitation, and lab-safety language."
-  },
-  {
-    "category": "subject_ai_teacher_productivity_instructional_planning",
-    "tier": "analysis",
-    "description": "Namespace: subject. Tag explicit teacher-facing AI use for lesson planning, differentiation, rubric creation, worksheet/material generation, feedback drafting, or instructional content preparation. DO NOT tag generic lesson planning, differentiation, worksheets, rubrics, teacher productivity, or edtech unless AI or a named AI product is explicit.",
-    "examples": [
-      "MagicSchool",
-      "Brisk",
-      "Diffit",
-      "AI lesson plan",
-      "AI lesson planning",
-      "AI rubric",
-      "AI worksheet",
-      "AI differentiation",
-      "AI generated lesson",
-      "teacher AI",
-      "AI planning",
-      "AI material generation",
-      "AI feedback draft",
-      "AI instructional planning"
-    ],
-    "counter_examples": [
-      "lesson plan",
-      "lesson planning",
-      "rubric",
-      "worksheet",
-      "differentiation",
-      "teacher productivity",
-      "planning tool",
-      "curriculum",
-      "instructional materials",
-      "unless AI-specific",
-      "unless named AI product"
-    ],
-    "target_coverage_pct": "0.2-3%",
-    "contrast_with": "subject_explicit_ai_tools_classroom_use; subject_ai_assisted_creation_production; subject_ai_tutoring_personalized_feedback; subject_coding_computer_science",
-    "rationale": "Teacher-facing AI use may show up through named tools or planning/material-generation language rather than student-facing AI literacy. Keep sparse and direct so it does not absorb generic planning or edtech demand."
   }
 ]
