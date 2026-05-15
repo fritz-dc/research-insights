@@ -37,14 +37,14 @@ ngrams:
 
 tfidf:
   min_df: 8                  # Minimum document frequency threshold for terms retained in TF-IDF.
-  max_df: 0.45               # Maximum document-frequency share allowed before a term is considered too common.
+  max_df: 0.40               # Maximum document-frequency share allowed before a term is considered too common.
   ngram_range: [1, 2]        # Range of n-grams used for TF-IDF feature construction.
 
 nmf:
-  n_components: 20           # Base number of NMF topics/components per group.
-  top_words: 12              # Number of highest-weight terms surfaced per topic.
+  n_components: 15           # Base number of NMF topics/components per group.
+  top_words: 15              # Number of highest-weight terms surfaced per topic.
   random_seed: 42            # Random seed for reproducible NMF initialization.
-  max_iter: 400              # Maximum number of iterations for NMF optimization.
+  max_iter: 500              # Maximum number of iterations for NMF optimization.
 
 enrichment:
   rare_doc_freq_ceiling: 1000        # Maximum document frequency for a token/phrase to count as "rare" during Pass A candidate discovery (02_semantic_enrichment).
@@ -60,7 +60,7 @@ enrichment:
   force_reclassify: true                # When true, re-run Pass B framing classification even if a cached framing_map.csv with a matching taxonomy hash already exists.
 
 analysis:
-  group_by: industry   # Column used to split the corpus into analysis groups. Downstream code expects a scalar field name.
+  group_by: project_category   # Column used to split the corpus into analysis groups. Downstream code expects a scalar field name.
   min_group_projects: 20        # Minimum number of projects required for a group to be included in analysis.
   min_coverage: 4               # Minimum number of groups a cross-group theme must appear in to be retained.
   topic_assignment_threshold: 0.30  # Minimum topic_share required to link a project to a topic in the project-topic bridge table.
@@ -112,6 +112,7 @@ analysis:
     safety_justice:                "school safety, discipline, attendance, and justice-adjacent context signals inferred from project language (community/gang violence exposure, justice-involved families, alternative schools, exclusionary discipline, mentoring, attendance language)"
     future_framing:                "forward-looking framing around careers, future readiness, AI/coding pathways, and technical skill-building inferred from project language"
     framing_context:               "situational framing inferred from project language — student identity and belonging, accommodation and access, scarcity, safety, experiential learning, expressive production, and family context"
+    current_pressures:             "post-2020 contextual pressures on K-12 inferred from project language — AI policy concerns, cellphone management, chronic absenteeism, climate disruption, ESSER budget pressure, school safety, student mental health, teacher staffing shortages"
 
   verification:
     by_group_min_source_topics: 3  # Verify by-group insights only when they cite at least this many source topics. Cross-group insights are always verified regardless of topic count.
@@ -131,7 +132,7 @@ analysis:
   packaging:
     min_verified_topic_count: 1       # Minimum verified source-topic count for an insight to pass packaging thresholds.
     min_supporting_project_count: 20  # Minimum supporting-project count for an insight to pass packaging thresholds.
-    min_mean_topic_share: 0.35        # Minimum mean topic_share across verified topics for an insight to pass packaging thresholds.
+    min_mean_topic_share: 0.40        # Minimum mean topic_share across verified topics for an insight to pass packaging thresholds.
     main_min_verification_ratio: 0.75 # Minimum verified/claimed topic ratio for main-section eligibility. Consumed by assign_topline_sections_simple() in utils.py; NB03 should pass this value as the main_min_verification_ratio argument.
     main_cross_limit: 5               # Maximum number of cross-category insights placed in the main report section.
 
@@ -152,7 +153,7 @@ models:
   verify: gpt-5.4-nano             # Model used to verify that cited source topics directly support each insight (NB03).
   gate: gpt-5.4-mini               # Model used for enrichment cluster coherence gating (NB02 Pass A).
   classify: gpt-5.4-mini           # Model used for framing taxonomy classification (NB02 Pass B).
-  synthesis: gpt-5.4               # Model used for cross-group and per-group synthesis narrative generation (NB03).
+  synthesis: gpt-5.5               # Model used for cross-group and per-group synthesis narrative generation (NB03).
 
 output:
   csv_max_ids_per_insight: 500   # Maximum number of ranked project IDs to store per insight row in CSV outputs. NB03 should pass this value to build_verified_insight_tables() as top_project_id_limit. Separate from looker_id_limit, which governs URL length, not CSV storage.
