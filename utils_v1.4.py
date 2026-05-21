@@ -850,6 +850,92 @@ def normalize_tokens(tokens: list[str], lang: str = "en") -> list[str]:
     return [simplemma.lemmatize(t, lang=lang) for t in tokens]
 
 
+def dedupe_near_duplicate_projects(
+    df: pd.DataFrame,
+    *,
+    block_field: str = "teacher_id",
+    project_id_col: str = "project_id",
+    token_col: str = "tokens",
+    shingle_n: int = 5,
+    containment_threshold: float = 0.90,
+    min_tokens: int = 40,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Drop near-duplicate project essays within a block, usually teacher_id.
+
+    Uses ordered contiguous token shingles. A project is marked duplicate when
+    its 5-token shingle set is at least containment_threshold contained in a
+    previously kept project from the same block.
+
+    Returns:
+        filtered_df, audit_df
+    """
+    if block_field not in df.columns:
+        audit = pd.DataFrame([{
+            "status": "skipped",
+            "reason": f"missing block_field: {block_field}",
+        }])
+        return df.copy(), audit
+
+    def _shingles(tokens: Any) -> set[tuple[str, ...]]:
+        toks = coerce_token_list(tokens)
+        if len(toks) < max(shingle_n, min_tokens):
+            return set()
+        return {tuple(toks[i:i + shingle_n]) for i in range(len(toks) - shingle_n + 1)}
+
+    def _containment(a: set[tuple[str, ...]], b: set[tuple[str, ...]]) -> float:
+        if not a or not b:
+            return 0.0
+        return len(a & b) / min(len(a), len(b))
+
+    work = df.drop_duplicates(project_id_col).copy()
+    work["_shingles"] = work[token_col].apply(_shingles)
+    work["_token_count"] = work[token_col].apply(lambda x: len(coerce_token_list(x)))
+
+    kept_ids = []
+    removed_to_kept = {}
+    audit_rows = []
+
+    for block_value, g in work.groupby(block_field, dropna=False):
+        reps: list[tuple[Any, set[tuple[str, ...]]]] = []
+
+        # Stable order: earliest row wins within teacher block.
+        for _, row in g.sort_values(project_id_col).iterrows():
+            pid = row[project_id_col]
+            shingles = row["_shingles"]
+
+            if not shingles:
+                kept_ids.append(pid)
+                reps.append((pid, shingles))
+                continue
+
+            match_pid = None
+            match_score = 0.0
+            for rep_pid, rep_shingles in reps:
+                score = _containment(shingles, rep_shingles)
+                if score >= containment_threshold and score > match_score:
+                    match_pid = rep_pid
+                    match_score = score
+
+            if match_pid is None:
+                kept_ids.append(pid)
+                reps.append((pid, shingles))
+            else:
+                removed_to_kept[pid] = match_pid
+                audit_rows.append({
+                    "project_id": pid,
+                    "kept_project_id": match_pid,
+                    "block_field": block_field,
+                    "block_value": block_value,
+                    "containment_score": round(float(match_score), 4),
+                    "token_count": int(row["_token_count"]),
+                    "method": f"{shingle_n}gram_containment",
+                })
+
+    filtered = df[df[project_id_col].isin(set(kept_ids))].copy()
+    audit = pd.DataFrame(audit_rows)
+    return filtered, audit
+
+
 # ── 9. Consolidation helpers ─────────────────────────────────────────────────
 
 
@@ -2890,6 +2976,178 @@ def build_topic_lines(
     return "\n".join(lines)
 
 
+def build_unit_lines(
+    unit_labels_df: pd.DataFrame,
+    cluster_membership_df: pd.DataFrame | None,
+    groupby_field: str,
+    group: Any | None = None,
+    top_terms_count: int = 4,
+    max_variation_groups_shown: int = 4,
+) -> str:
+    """Render labeled units (clusters + singletons) into prompt lines.
+
+    Sibling to build_topic_lines. Emits one line per unit so synthesis can
+    reason about clusters as first-class evidence while still seeing singleton
+    topics. Cluster lines carry span (n_topics, n_groups), variation_notes
+    summary, and support_multiplier. Singleton lines carry the same shape as
+    topic lines.
+
+    Line formats:
+      cluster:   cluster {cid} | label: {...} | coherence: {flag} | span: {N topics across M groups} |
+                 support: 2.4x | variation: {group1: angle1; group2: angle2; ...; +K more} |
+                 member_topics: <g>|<id>, <g>|<id>, ... | description: {...}
+      singleton: {group} | topic {id} | label: {...} | coherence: {flag} |
+                 support: 1.2x | top_terms: ... | description: {...}
+
+    Args:
+        unit_labels_df:           DataFrame of labeled units with unit_type column.
+        cluster_membership_df:    Required when unit_labels_df contains cluster rows;
+                                  used to look up member (group, topic_id) pairs.
+                                  Pass None to skip cluster handling.
+        groupby_field:            The analysis grouping column.
+        group:                    If provided, filter to units containing this group.
+                                  For singletons: matches the row's group field.
+                                  For clusters: matches if any cluster member is in this group.
+        top_terms_count:          Cap on top_terms shown per singleton line.
+        max_variation_groups_shown: Cap on variation_notes entries shown per cluster line.
+
+    Returns:
+        Newline-joined string of unit lines.
+    """
+    if unit_labels_df.empty:
+        return ""
+
+    def _fmt_terms(val: Any, n: int) -> str:
+        """Parse top_terms (list, JSON string, or CSV string) and return top n."""
+        if n <= 0:
+            return ""
+        if isinstance(val, list):
+            terms = [str(x).strip() for x in val if str(x).strip()]
+        elif pd.isna(val):
+            terms = []
+        else:
+            s = str(val).strip()
+            if not s:
+                terms = []
+            else:
+                try:
+                    parsed = json.loads(s)
+                    terms = (
+                        [str(x).strip() for x in parsed if str(x).strip()]
+                        if isinstance(parsed, list)
+                        else [x.strip() for x in s.split(",") if x.strip()]
+                    )
+                except Exception:
+                    terms = [x.strip() for x in s.split(",") if x.strip()]
+        terms = [clean_label(t) for t in terms[:n]]
+        return ", ".join(t for t in terms if t)
+
+    # Pre-build a cluster_id -> member rows index so we can look up member
+    # (group, topic_id) pairs without re-querying for each cluster line.
+    cluster_members_by_id: dict[int, list[tuple[str, int]]] = {}
+    if cluster_membership_df is not None and not cluster_membership_df.empty:
+        for cid, sub in cluster_membership_df.groupby("cluster_id"):
+            cluster_members_by_id[int(cid)] = [
+                (str(r[groupby_field]), int(r["topic_id"]))
+                for _, r in sub.iterrows()
+            ]
+
+    lines: list[str] = []
+    for _, row in unit_labels_df.iterrows():
+        unit_type = row.get("unit_type")
+
+        # ── Cluster line ────────────────────────────────────────────────────
+        if unit_type == "cluster":
+            cid = int(row["cluster_id"]) if pd.notna(row.get("cluster_id")) else -1
+            members = cluster_members_by_id.get(cid, [])
+
+            # Optional group filter: include cluster only if any member is in
+            # the requested group.
+            if group is not None:
+                if not any(g == group for g, _ in members):
+                    continue
+
+            # Span: counts come from the cluster's members.
+            member_groups = sorted({g for g, _ in members})
+            line = (
+                f"  cluster {cid} | "
+                f"label: {clean_label(row.get('proposed_label'))} | "
+                f"coherence: {row.get('coherence_flag', '?')} | "
+                f"span: {len(members)} topics across {len(member_groups)} groups | "
+            )
+
+            # Strength signal: same field as singleton lines.
+            support_mul = row.get("support_multiplier")
+            if support_mul is not None and pd.notna(support_mul) and support_mul > 0:
+                line += f"support: {float(support_mul):.1f}x | "
+
+            # Variation summary: pull the LLM-returned variation_notes if
+            # present. Each is {group, distinctive_angle}. Skip
+            # "no distinctive angle" entries to keep the line tight.
+            var_notes = row.get("variation_notes")
+            if isinstance(var_notes, list) and var_notes:
+                informative = [
+                    n for n in var_notes
+                    if isinstance(n, dict)
+                    and str(n.get("distinctive_angle", "")).strip().lower()
+                    != "no distinctive angle"
+                ]
+                if informative:
+                    shown = informative[:max_variation_groups_shown]
+                    pieces = [
+                        f"{n.get('group', '?')}: {clean_label(n.get('distinctive_angle', ''))}"
+                        for n in shown
+                    ]
+                    extra = len(informative) - len(shown)
+                    suffix = f"; +{extra} more" if extra > 0 else ""
+                    line += f"variation: {'; '.join(pieces)}{suffix} | "
+
+            # Member topics: synthesis must cite at this level, not at cluster level.
+            if members:
+                # Truncate if very long to keep the prompt readable.
+                member_strs = [f"{g}|{tid}" for g, tid in members[:20]]
+                if len(members) > 20:
+                    member_strs.append(f"+{len(members) - 20} more")
+                line += f"member_topics: {', '.join(member_strs)} | "
+
+            line += f"description: {clean_label(row.get('description', ''))}"
+            lines.append(line)
+            continue
+
+        # ── Singleton line ──────────────────────────────────────────────────
+        # Singletons in unit_labels_df may not carry GROUPBY_FIELD/topic_id
+        # directly; recover from the unit_id if needed. By construction in
+        # Step 5, singleton unit_id is "singleton_{group}_{topic_id}", but
+        # group values can contain underscores so we don't string-parse them.
+        # Prefer the labels_df side (singleton_label_rows) which carries the
+        # parsed fields. Here we work from whatever unit_labels_df has.
+        s_group = row.get(groupby_field) or row.get("group")
+        s_topic = row.get("topic_id")
+        if pd.isna(s_group) or pd.isna(s_topic):
+            # Cannot render without ids. Skip with no error -- this row will
+            # appear elsewhere via labels_df if needed.
+            continue
+
+        if group is not None and str(s_group) != str(group):
+            continue
+
+        top_terms_str = _fmt_terms(row.get("top_terms"), top_terms_count)
+        line = (
+            f"  {s_group} | topic {int(s_topic)} | "
+            f"label: {clean_label(row.get('proposed_label'))} | "
+            f"coherence: {row.get('coherence_flag', '?')} | "
+        )
+        support_mul = row.get("support_multiplier")
+        if support_mul is not None and pd.notna(support_mul) and support_mul > 0:
+            line += f"support: {float(support_mul):.1f}x | "
+        if top_terms_str:
+            line += f"top_terms: {top_terms_str} | "
+        line += f"description: {clean_label(row.get('description', ''))}"
+        lines.append(line)
+
+    return "\n".join(lines)
+
+
 def build_per_group_prompt(
     group: Any,
     group_description: str,
@@ -4465,6 +4723,7 @@ __all__ = [
     "flat_freq",
     "token_doc_freq",
     "normalize_tokens",
+    "dedupe_near_duplicate_projects",
     # Consolidation helpers
     "build_consolidation_candidates",
     # Analysis helpers
@@ -4527,6 +4786,7 @@ __all__ = [
     # Synthesis helpers
     "clean_label",
     "build_topic_lines",
+    "build_unit_lines",
     "build_per_group_prompt",
     "_call_with_retry",
     "synthesize_one_group",

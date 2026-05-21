@@ -32,14 +32,23 @@ preprocess:
 ingest:
   chunk_size: 500000         # Number of rows to process per chunk when ingesting large SQL extract CSVs.
 
+near_duplicate_dedupe:
+  enabled: true
+  block_field: teacher_id
+  project_id_col: project_id
+  token_col: tokens
+  shingle_n: 5
+  containment_threshold: 0.9
+  min_tokens: 40
+
 ngrams:
   max_n: 3                   # Maximum n-gram length to generate upstream (for example: 3 = allow unigrams, bigrams, and trigrams).
 
 tfidf:
-  min_df: 8                  # Minimum document frequency threshold for terms retained in TF-IDF.
-  max_df: 0.50               # Maximum document-frequency share allowed before a term is considered too common.
-  ngram_range: [1, 2]        # Range of n-grams used for TF-IDF feature construction.
-  injected_token_weight: 1.5 # multiplier on injected-token columns; 1.0 = no change
+  min_df: 8                   # Minimum document frequency threshold for terms retained in TF-IDF.
+  max_df: 0.50                # Maximum document-frequency share allowed before a term is considered too common.
+  ngram_range: [1, 2]         # Range of n-grams used for TF-IDF feature construction.
+  injected_token_weight: 1.75 # multiplier on injected-token columns; 1.0 = no change
 
 nmf:
   n_components: 20           # Base number of NMF topics/components per group.
@@ -133,15 +142,15 @@ analysis:
     by_group_min_source_topics: 3  # Verify by-group insights only when they cite at least this many source topics. Cross-group insights are always verified regardless of topic count.
 
   slice_rules:
-    min_group_projects: 35       # Minimum projects required for a group to be eligible for category TF-IDF and NMF.
+    min_group_projects: 200      # Minimum projects required for a group to be eligible for category TF-IDF and NMF.
     min_retained_vocab: 60       # Minimum retained TF-IDF vocabulary size required for an NMF slice to proceed.
     min_tfidf_nnz: 300           # Minimum non-zero TF-IDF entries required for an NMF slice to proceed.
     small_slice_cutoff: 125      # If median group size falls below this value, small-slice mode activates and uses small_slice_topic_cap instead of nmf.n_components.
     small_slice_topic_cap: 8     # Maximum NMF topic count when small-slice mode is active.
-    min_projects_per_topic: 15   # Minimum projects per NMF topic. Used by choose_n_components() in utils.py as the divisor in max(4, n_docs // min_projects_per_topic).
+    min_projects_per_topic: 50   # Minimum projects per NMF topic. Used by choose_n_components() in utils.py as the divisor in max(4, n_docs // min_projects_per_topic).
     cross_min_insights: 3        # Minimum number of cross-group insights requested from the synthesis prompt.
     cross_max_insights: 5       # Maximum number of cross-group insights requested from the synthesis prompt.
-    per_group_min_insights: 1    # Minimum number of per-group insights requested from the synthesis prompt.
+    per_group_min_insights: 2    # Minimum number of per-group insights requested from the synthesis prompt.
     per_group_max_insights: 3    # Maximum number of per-group insights requested from the synthesis prompt.
 
   packaging:
@@ -258,7 +267,7 @@ output:
     - "project.projectid"
     - "project_essays.essay"
   looker_limit: 500              # Row limit passed to Looker Explore URLs.
-  looker_id_limit: 200           # Maximum number of project IDs included in a Looker Explore URL filter. Separate from csv_max_ids_per_insight — Looker URLs have a practical length cap.
+  looker_id_limit: 500           # Maximum number of project IDs included in a Looker Explore URL filter. Separate from csv_max_ids_per_insight — Looker URLs have a practical length cap.
   report_title: "Classroom Compass: [Update before each run]"  # Title shown at the top of the DOCX report. Replace the bracketed text with the actual report title before running NB03.
   report_main_section_label: "Main Insights"          # H1 heading for the main report section.
   report_appendix_section_label: "Appendix"           # H1 heading for the appendix section.
