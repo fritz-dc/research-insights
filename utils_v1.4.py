@@ -57,6 +57,7 @@ from docx.shared import Inches, Pt, RGBColor
 from openai import OpenAI
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import normalize
 
 # Root of the project tree; used to resolve all relative paths.
 ROOT = Path(__file__).parent
@@ -927,6 +928,58 @@ def build_consolidation_candidates(
 
 
 # ── 10. Analysis helpers ──────────────────────────────────────────────────────
+
+
+INJECTED_TOKEN_PREFIXES = ("__",)
+
+
+def upweight_injected_tokens(
+    X: Any,
+    vec: TfidfVectorizer,
+    weight: float,
+    renormalize: bool = True,
+) -> Any:
+    """Multiply TF-IDF matrix columns corresponding to injected enrichment tokens.
+
+    Injected tokens are analyst-curated semantic markers (e.g.
+    __framing_calm__, __sensitive_context_food_insecurity__) that NB02 adds to
+    project token lists based on essay content. Up-weighting them here makes
+    them more influential in downstream NMF without changing which projects are
+    in scope or which terms are in the vocabulary.
+
+    For bigrams, any feature whose string contains a known injection prefix
+    qualifies (catches "support __framing_calm__" as well as
+    "__framing_calm__ space").
+
+    Args:
+        X:           Fitted TF-IDF sparse matrix from vec.fit_transform(docs).
+        vec:         The vectorizer that produced X (used for feature names).
+        weight:      Multiplier for injected-token columns. 1.0 = no change.
+        renormalize: If True (default), re-L2-normalize rows after multiplying
+                     so project-level magnitude is unchanged and only the
+                     within-project weight balance shifts toward injected
+                     tokens. If False, projects with more injected tokens
+                     become more influential overall.
+
+    Returns:
+        The (possibly modified) sparse matrix. When weight == 1.0 or no
+        injected-token columns are present, returns X unchanged.
+    """
+    if weight == 1.0:
+        return X
+    feat = vec.get_feature_names_out()
+    injected_cols = [
+        i for i, t in enumerate(feat)
+        if any(p in t for p in INJECTED_TOKEN_PREFIXES)
+    ]
+    if not injected_cols:
+        return X
+    scaler = np.ones(X.shape[1])
+    scaler[injected_cols] = weight
+    X = X.multiply(scaler).tocsr()
+    if renormalize:
+        X = normalize(X, norm="l2", axis=1, copy=False)
+    return X
 
 
 def make_vec(
@@ -2362,6 +2415,11 @@ def nmf_one(
         tuple(ct_cfg.get("ngram_range", [1, 1])),
     )
     X = vec.fit_transform(docs)
+    X = upweight_injected_tokens(
+        X, vec,
+        weight=float(ct_cfg.get("injected_token_weight", 1.0)),
+        renormalize=True,
+    )
     retained_vocab = int(X.shape[1])
     nonzero_tfidf_nnz = int(X.nnz)
 
@@ -2819,6 +2877,12 @@ def build_topic_lines(
             f"label: {clean_label(row.proposed_label)} | "
             f"coherence: {row.coherence_flag} | "
         )
+        # Optional strength signal so synthesis can weigh thin vs strong topics.
+        # Present only when the labels_df has been augmented with
+        # support_multiplier (run-median-normalized supporting-project count).
+        support_mul = row.get("support_multiplier")
+        if support_mul is not None and pd.notna(support_mul) and support_mul > 0:
+            line += f"support: {float(support_mul):.1f}x | "
         if top_terms_str:
             line += f"top_terms: {top_terms_str} | "
         line += f"description: {clean_label(row.description)}"

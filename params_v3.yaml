@@ -163,7 +163,7 @@ analysis:
 # ──────────────────────────────────────────────────────────────────────────────
 strategic_loop:
   enabled: true  # false preserves legacy NB03 behavior; set true for one strategic-area split run.
-  strategic_area_id: ai_usage_technology_literacy  # Strategic area key from CONFIG/strategic_areas.yaml; used only when enabled=true.
+  strategic_area_id: classroom_and_basic_needs  # Strategic area key from CONFIG/strategic_areas.yaml; used only when enabled=true.
   split: strategic_injected_tag  # One split to run now; valid simple values include strategic_injected_tag, project_category, grade_band, urbanity, efs, project_size, state_cluster.
   strategic_areas_path: "CONFIG/strategic_areas.yaml"  # YAML file defining strategic areas and their include_taxonomy_tags.
   state_clusters_path: "CONFIG/state_clusters.yaml"  # YAML file mapping two-letter state values into state_cluster groups.
