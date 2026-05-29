@@ -1,0 +1,394 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Classroom Compass — params.yaml
+#
+# Single source of truth for all tunable pipeline values.
+# Do not hardcode parameter values in notebook cells or utils.py.
+#
+# Block → primary notebook consumer
+#   sql, preprocess, ingest        →  01_token_preprocess
+#   ngrams, tfidf                  →  01_token_preprocess, 03_insights_generation
+#   nmf                            →  03_insights_generation
+#   enrichment                     →  02_semantic_enrichment
+#   analysis                       →  03_insights_generation
+#   llm, models                    →  02_semantic_enrichment, 03_insights_generation
+#   output                         →  03_insights_generation
+#   quality                        →  01_token_preprocess, 03_insights_generation
+#
+# Per-run overrides: set env var PIPELINE_PARAMS to the path of an
+# alternate YAML file before launching Jupyter. load_cfg() already checks
+# this variable, so the override is live with no code changes required.
+# ──────────────────────────────────────────────────────────────────────────────
+
+sql:
+  min_doc_count: 15          # Minimum number of distinct projects a token must appear in to be retained after SQL-side filtering.
+  max_doc_fraction: 0.50     # Maximum share of projects a token may appear in before being treated as too common and dropped.
+  token_cap: 80              # Maximum number of tokens kept per project after SQL extraction / trimming.
+
+preprocess:
+  min_project_tokens: 5           # Minimum number of tokens a project must have after preprocessing to remain in the dataset.
+  dedup_tokens_per_project: true  # Whether repeated occurrences of the same token inside a single project are collapsed to one unique token.
+  known_lemma_fixes_path: "CONFIG/known_lemma_fixes.yaml"  # Path to the simplemma truncation-artifact correction dictionary. NB01 setup should load this file and pass the resulting dict to build_consolidation_candidates().
+
+ingest:
+  chunk_size: 500000         # Number of rows to process per chunk when ingesting large SQL extract CSVs.
+
+near_duplicate_dedupe:
+  enabled: true
+  block_field: teacher_id
+  project_id_col: project_id
+  token_col: tokens
+  shingle_n: 5
+  containment_threshold: 0.9
+  min_tokens: 40
+
+ngrams:
+  max_n: 3                   # Maximum n-gram length to generate upstream (for example: 3 = allow unigrams, bigrams, and trigrams).
+
+tfidf:
+  min_df: 8                   # Minimum document frequency threshold for terms retained in TF-IDF.
+  max_df: 0.50                # Maximum document-frequency share allowed before a term is considered too common.
+  ngram_range: [1, 2]         # Range of n-grams used for TF-IDF feature construction.
+  injected_token_weight: 2.0  # multiplier on injected-token columns; 1.0 = no change
+
+nmf:
+  n_components: 20           # Base number of NMF topics/components per group.
+  top_words: 15              # Number of highest-weight terms surfaced per topic.
+  random_seed: 42            # Random seed for reproducible NMF initialization.
+  max_iter: 500              # Maximum number of iterations for NMF optimization.
+
+enrichment:
+  rare_doc_freq_ceiling: 1000        # Maximum document frequency for a token/phrase to count as "rare" during Pass A candidate discovery (02_semantic_enrichment).
+  agg_distance_threshold: 0.35       # Cosine-distance threshold for agglomerative clustering of enrichment candidates; lower values create tighter clusters.
+  min_cluster_size: 3                # Minimum number of terms required for an enrichment cluster to be kept after clustering.
+  min_inject_projects: 25            # Minimum number of projects that must contain a term mapping to an injected token for that token to be injected. NB02 Pass C should read this value and apply it as a filter before writing the enriched parquet.
+  max_doc_freq_for_injection: 25000  # Maximum document frequency allowed for a candidate enrichment term before it is considered too common to inject. NB02 Pass C should load ceiling_exceptions_path and exempt listed terms from this ceiling.
+  ceiling_exceptions_path: "CONFIG/ceiling_exceptions.yaml"  # Path to the per-term injection-ceiling override map. NB02 Pass C should load this file and use it to exempt listed terms from max_doc_freq_for_injection.
+  classify_batch_size: 150           # Number of terms sent per batch during LLM framing classification (Pass B).
+  embedding_model: "all-MiniLM-L6-v2"  # SentenceTransformer model used to create embeddings for Pass A clustering. Must be available in the local model cache.
+  cache_schema_version: "v1"           # Manual cache-busting version string for Pass A embeddings. Increment to force re-embedding even when input terms have not changed.
+  coverage_deviation_warn_threshold: 10  # Warning threshold in percentage points; intended to trigger append_warning() in 02_semantic_enrichment when realized injection coverage deviates from the taxonomy target by more than this amount.
+  force_reclassify: true                # When true, re-run Pass B framing classification even if a cached framing_map.csv with a matching taxonomy hash already exists.
+
+analysis:
+  group_by: project_category   # Column used to split the corpus into analysis groups. Downstream code expects a scalar field name. In non-strategic combined mode this is the label of the materialized combined column.
+  group_by_fields: []          # When non-empty (2+ entries) and strategic_loop.enabled is false, NB03 materializes a combined column whose name is `group_by` by joining these source fields. Ignored when strategic_loop.enabled is true. REQUIRED key for the strategic_sweep runner.
+  min_group_projects: 20        # Minimum number of projects required for a group to be included in analysis.
+  min_coverage: 4               # Minimum number of groups a cross-group theme must appear in to be retained.
+  topic_assignment_threshold: 0.30  # Minimum topic_share required to link a project to a topic in the project-topic bridge table.
+  nmf_min_shared: 3             # Minimum number of shared top terms required to count two topics as overlapping for cross-group theme detection.
+  cat_tfidf_top_n: 30           # Number of top TF-IDF terms to surface per group in category_tfidf.csv.
+  review_group: null            # Optional: restrict the full analysis run to a single group value. null = run all eligible groups.
+  exclude_groups: ["__NA__"]    # List of group values to skip entirely. Applied before any analysis step.
+  synthesis_max_workers: 20     # Maximum number of concurrent threads in the per-group synthesis ThreadPoolExecutor.
+  labeling_max_workers: 20      # Maximum number of concurrent threads in the per-topic labeling ThreadPoolExecutor.
+
+  bins: []
+  # Time-slice bucketing applied to posted_date before grouping.
+  # NOT SUPPORTED IN V1: topic identity and source_topic traceability are keyed
+  # by (group, topic_id) only. Non-empty bins would cause silent topic-id
+  # collisions across bins within the same group. NB03 raises a ValueError if
+  # this is non-empty. Planned for a future version.
+  # Example entry format (for reference only):
+  #   - name: "H1 2025"
+  #     start: "2025-01-01"
+  #     end:   "2025-06-30"
+
+  filter_logic: and
+  # Controls how multiple filter rules in the filters list are combined.
+  # Only "and" is supported by the current implementation; this value is
+  # validated at startup and will raise an error if set to anything else.
+
+  filters:
+    - field: expiration_date
+      op: range
+      min: "2023-07-01"
+  # Declarative filter rules applied to the enriched corpus before analysis.
+  # Each rule requires: field (column name), op (eq | in | range | is_null | not_null).
+  # op: eq    requires: value
+  # op: in    requires: values (list)
+  # op: range requires: min and/or max (date strings are auto-coerced for date columns)
+  # To run without filters, replace the list above with: filters: []
+
+  group_descriptions:
+    project_category:              "product categories teachers use to request classroom supplies"  # Legacy/direct split on raw project category.
+    project_category_bucketed:     "project categories with unclassified or sparse categories grouped into All Other"  # Strategic project-category split used by NB03 prep.
+    project_category_x_grade_band: "combined project category and grade-band groups within the selected strategic area"  # Combined split for large areas such as classroom_and_basic_needs.
+    strategic_injected_tag:        "taxonomy-tag subgroups within the selected strategic area"  # Strategic split from matched tag_* columns.
+    grade_band:                    "grade bands (PreK-2, 3-5, 6-8, 9-12) across DonorsChoose projects"  # Developmental / student-age split.
+    posted_year:                   "annual time periods showing how teacher language evolved"  # Legacy annual time split.
+    posted_year_quarter:           "quarterly time periods showing how teacher language evolved"  # Legacy quarterly time split.
+    posting_period:                "project posting period, usually based on posted_year_quarter"  # Derived metadata-lift dimension.
+    metro_type_at_time_of_posting: "school metro types across DonorsChoose projects"  # Urbanity / metro split.
+    urbanity:                      "school metro or urbanity grouping, resolved to metro_type_at_time_of_posting in strategic prep"  # Strategic split alias.
+    state_cluster:                 "balanced state clusters used to summarize geography without relying on individual-state noise"  # Geography split / lift dimension.
+    project_cost_bucket:           "project cost buckets derived from total project cost"  # Project-size split / lift dimension.
+    project_size:                  "project size grouping, resolved to project_cost_bucket in strategic prep"  # Strategic split alias.
+    funding_status:                "funded, expired-unfunded, or live-unfunded project status"  # Derived funding-status lift dimension.
+    fy25_historical_efs_status:    "FY25 historical Equity Focus School classification"  # EFS split / lift dimension.
+    efs:                           "Equity Focus School grouping, resolved to fy25_historical_efs_status in strategic prep"  # Strategic split alias.
+    school_is_low_income:          "low-income vs non-low-income schools"  # School context lift dimension.
+    school_is_underserved_rural:   "underserved rural school flag"  # Rural context lift dimension.
+    school_is_historically_underrepresented_race: "historically underrepresented race school flag"  # School demographic lift dimension.
+    school_is_racially_predominant: "racially predominant school flag"  # School demographic lift dimension.
+    efs_x_grade_band:              "DEPRECATED legacy derived field: efs waterfall interacted with grade band"  # Kept for documentation only; NB03 v1.5+ will guard against legacy use.
+    funding_status_x_metro:        "DEPRECATED legacy derived field: funded/expired interacted with metro type"  # Kept for documentation only; NB03 v1.5+ will guard against legacy use.
+    specialty_subject:             "DEPRECATED as legacy group_by; now use strategic_loop strategic_area_id=specialty_subject"  # Strategic area, not legacy direct groupby.
+    industry:                      "DEPRECATED as legacy group_by; now use strategic_loop strategic_area_id=industry"  # Strategic area, not legacy direct groupby.
+    safety_justice:                "DEPRECATED as legacy group_by; now use strategic_loop strategic_area_id=safety_justice"  # Strategic area, not legacy direct groupby.
+    future_framing:                "DEPRECATED as legacy group_by; now use strategic_loop strategic_area_id=future_framing"  # Strategic area, not legacy direct groupby.
+    framing_context:               "DEPRECATED legacy derived field: broad situational framing grouping"  # Kept for documentation only; NB03 v1.5+ will guard against legacy use.
+    current_pressures:             "DEPRECATED legacy derived field: post-2020 contextual pressures grouping"  # Kept for documentation only; NB03 v1.5+ will guard against legacy use.
+
+  verification:
+    by_group_min_source_topics: 1  # Verify by-group insights only when they cite at least this many source topics. Cross-group insights are always verified regardless of topic count.
+
+  slice_rules:
+    min_group_projects: 50      # Minimum projects required for a group to be eligible for category TF-IDF and NMF.
+    min_retained_vocab: 60       # Minimum retained TF-IDF vocabulary size required for an NMF slice to proceed.
+    min_tfidf_nnz: 300           # Minimum non-zero TF-IDF entries required for an NMF slice to proceed.
+    small_slice_cutoff: 125      # If median group size falls below this value, small-slice mode activates and uses small_slice_topic_cap instead of nmf.n_components.
+    small_slice_topic_cap: 8     # Maximum NMF topic count when small-slice mode is active.
+    min_projects_per_topic: 50   # Minimum projects per NMF topic. Used by choose_n_components() in utils.py as the divisor in max(4, n_docs // min_projects_per_topic).
+    cross_min_insights: 4        # Minimum number of cross-group insights requested from the synthesis prompt.
+    cross_max_insights: 6       # Maximum number of cross-group insights requested from the synthesis prompt.
+    per_group_min_insights: 2    # Minimum number of per-group insights requested from the synthesis prompt.
+    per_group_max_insights: 6    # Maximum number of per-group insights requested from the synthesis prompt.
+
+  packaging:
+    min_verified_topic_count: 1       # Minimum verified source-topic count for an insight to pass packaging thresholds.
+    min_supporting_project_count: 8   # Minimum supporting-project count for an insight to pass packaging thresholds.
+    min_mean_topic_share: 0.20        # Minimum mean topic_share across verified topics for an insight to pass packaging thresholds.
+    main_min_verification_ratio: 0.50 # Minimum verified/claimed topic ratio for main-section eligibility. Consumed by assign_topline_sections_simple() in utils.py; NB03 should pass this value as the main_min_verification_ratio argument.
+    main_cross_limit: 5               # Maximum number of cross-category insights placed in the main report section.
+
+  dedupe:
+    topic_overlap_high: 0.80   # Drop a candidate immediately when its verified-topic overlap with a kept insight is at or above this level.
+    topic_overlap_min: 0.60    # Minimum topic overlap required before title/text similarity scores are also checked.
+    title_overlap_min: 0.60    # Minimum title-token Jaccard overlap required for a deterministic duplicate drop when topic overlap is moderate.
+    text_overlap_min: 0.55     # Minimum combined title+body token Jaccard overlap required for a deterministic duplicate drop when topic overlap is moderate.
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Strategic loop controls for NB03 v1.5+.
+# Existing analysis.filters still define corpus scope; do not add run_scope here.
+# ──────────────────────────────────────────────────────────────────────────────
+strategic_loop:
+  enabled: true  # false preserves legacy NB03 behavior; set true for one strategic-area split run.
+  strategic_area_id: safety_justice  # Strategic area key from CONFIG/strategic_areas.yaml; used only when enabled=true.
+  split: strategic_injected_tag  # One split to run now; valid simple values include strategic_injected_tag, project_category, grade_band, urbanity, efs, project_size, state_cluster.
+  strategic_areas_path: "CONFIG/strategic_areas.yaml"  # YAML file defining strategic areas and their include_taxonomy_tags.
+  state_clusters_path: "CONFIG/state_clusters.yaml"  # YAML file mapping two-letter state values into state_cluster groups.
+  allow_missing_tag_columns: true  # false raises if a selected area's tag_* columns are missing from 06_enriched; true warns/drops missing tags.
+  min_group_projects: 50  # Minimum unique projects required for a strategic split group to be kept for NMF.
+
+  # To run the accepted combined classroom split, replace split above with this mapping.
+  # split:  # Combined split example; creates one derived group column, not two separate runs.
+  #   groupby_fields: [project_category, grade_band]  # Fields combined after project_category bucketing.
+  #   label: project_category_x_grade_band  # Name of the derived scalar group-by column.
+
+topic_clustering:
+  enabled: true
+  # Note: Jaccard on top-N term sets is discrete. With top_n_terms=10, achievable
+  # values include 0.429 (6/14), 0.538 (7/13), and 0.667 (8/12).
+  # A threshold of 0.50 selects the 7/13 band and above. A threshold of 0.55
+  # selects the 8/12 band and above. A threshold of 0.40 selects the 6/14 band.
+  jaccard_threshold: 0.5
+  top_n_terms: 10           # Term-set size used for clustering. Should match NMF top_words or be a prefix of it.
+  min_concrete_core_terms: 3  # Cluster needs at least this many shared_core terms NOT in generic_core_terms.
+  generic_cluster_action: pass_through  # One of: drop | demand_concrete | pass_through. drop is default; CSV is always saved.
+  generic_core_terms:
+    # Initial list seeded from observed generic clusters (classroom × tag cluster 9,
+    # MH/SEL × cost cluster 7). Edit as new runs surface more rhetoric-only cores.
+    - environment
+    - essential
+    - enhance
+    - foster
+    - experience
+    - ensure
+    - aim
+    - sense
+    - overall
+    - promote
+    - support
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Optional evidence-unit generation for NB03.
+# Existing NMF remains the default evidence generator. When mechanism_discovery
+# is enabled, NB03 also adds local phrase/co-occurrence bundles as pseudo-topics
+# so the downstream labeling, synthesis, verification, packaging, and reporting
+# path stays the same.
+# ──────────────────────────────────────────────────────────────────────────────
+evidence_generation:
+  method: mechanism_discovery  # nmf | mechanism_discovery | hybrid. hybrid keeps NMF and appends local mechanism bundles.
+
+  mechanism_discovery:
+    enabled: true
+    ngram_range: [1, 3]
+    min_phrase_doc_count: 5
+    min_lift_vs_rest: 1.1
+    max_phrase_doc_share: 0.80
+    max_phrases_per_group: 400
+    cooccurrence_jaccard_threshold: 0.03
+    min_unit_phrases: 2
+    min_unit_projects: 8
+    max_units_per_group: 16
+    max_terms_per_unit: 12
+    max_projects_per_unit: 1000
+    min_token_len: 3
+    exclude_terms: []
+    exclude_tokens: []
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Metadata lift controls for Step 7 structured insight extraction.
+# Lift facts are optional scope signals only; the model is not required to use them.
+# ──────────────────────────────────────────────────────────────────────────────
+metadata_lift:
+  enabled: true  # true computes optional Step 7 metadata scope signals for candidate insights.
+
+  # Dimensions checked. Comment out a dimension to skip it for a specific run.
+  dimensions:  # Candidate metadata dimensions compared against the current run corpus.
+    - project_category_bucketed  # Bucketed project category; unclassified values collapse to All Other.
+    - grade_band  # Grade-band distribution among supporting projects vs the run corpus.
+    - metro_type_at_time_of_posting  # Urbanity / metro distribution among supporting projects vs the run corpus.
+    - fy25_historical_efs_status  # Equity Focus School distribution among supporting projects vs the run corpus.
+    - project_cost_bucket  # Project-size distribution derived from total_cost.
+    - state_cluster  # Balanced geography distribution derived from state.
+    - funding_status  # Three-bucket status: funded, expired_unfunded, or live_unfunded.
+    - posting_period  # Posting period, usually posted_year_quarter or derived from posted_date.
+    - school_is_low_income  # Low-income school flag for scope control.
+    - school_is_underserved_rural  # Underserved rural school flag for scope control.
+    - school_is_historically_underrepresented_race  # Historically underrepresented race school flag for scope control.
+    - school_is_racially_predominant  # Racially predominant school flag for scope control.
+
+  # Count gates.
+  min_supporting_projects_for_lift: 50  # Candidate must have at least this many supporting projects before any metadata signal is considered.
+  min_value_count_in_insight: 20  # Dimension/value must appear in at least this many supporting projects.
+  min_value_count_in_run: 50  # Dimension/value must appear in at least this many projects in the full run.
+
+  # Effect-size gates.
+  min_cohens_h: 0.20  # Primary selection gate. 0.20 is a conventional small-effect floor for difference between proportions.
+  min_abs_difference_pp: 2  # Backstop so trivial percentage-point differences do not reach the prompt.
+  # min_lift is deprecated. Do not use it; metadata fact selection is now based on min_cohens_h.
+  # The prompt still reports lift as a human-readable descriptor once a fact is selected.
+
+  # Prompt-size caps.
+  max_values_per_dimension: 3  # Maximum retained metadata values within each dimension.
+  max_total_lift_facts_per_insight: 5  # Maximum total metadata bullets passed to Step 7 for one candidate.
+
+llm:
+  top_terms_in_prompt: 12          # Number of top NMF terms to include per topic in labeling and synthesis prompts.
+  n_representative_snippets: 10    # Number of representative project snippets included in each topic-labeling prompt.
+  synthesis_top_terms_count: 6     # Number of top terms included per topic line in synthesis prompts (typically smaller than top_terms_in_prompt).
+  max_retries: 10
+  service_tier: flex
+  flex_attempts: 5
+  fallback_service_tier: default
+  flex_retry_delay_seconds: 2
+  retry_delay_seconds: 5
+  timeout_seconds: 900
+
+models:
+  gate: gpt-5.4-mini               # Model used for enrichment cluster coherence gating (NB02 Pass A).
+  classify: gpt-5.4-mini           # Model used for framing taxonomy classification (NB02 Pass B).
+  labeling: gpt-5.4-mini           # Model used for short topic / cluster labeling tasks (NB03 Step 5).
+  synthesis: gpt-5.4               # Model used for cross-group and per-group synthesis narrative generation (NB03).
+  verify: gpt-5.4-nano             # Model used to verify that cited source topics directly support each insight (NB03).
+
+output:
+  csv_max_ids_per_insight: 500   # Maximum number of ranked project IDs to store per insight row in CSV outputs. NB03 should pass this value to build_verified_insight_tables() as top_project_id_limit. Separate from looker_id_limit, which governs URL length, not CSV storage.
+  looker_base_url: "https://donorschoose.looker.com/explore/main/project"
+  looker_filter_field: "project.projectid"
+  looker_fields:
+    - "project.projectid"
+    - "project_essays.essay"
+  looker_limit: 500              # Row limit passed to Looker Explore URLs.
+  looker_id_limit: 500           # Maximum number of project IDs included in a Looker Explore URL filter. Separate from csv_max_ids_per_insight — Looker URLs have a practical length cap.
+  report_title: "Classroom Compass: [Update before each run]"  # Title shown at the top of the DOCX report. Replace the bracketed text with the actual report title before running NB03.
+  report_main_section_label: "Main Insights"          # H1 heading for the main report section.
+  report_appendix_section_label: "Appendix"           # H1 heading for the appendix section.
+  report_main_cross_label: "Cross-Category Similarities"       # H2 heading for main-section cross-category insights.
+  report_main_by_group_label: "Group-Specific Findings"        # H2 heading for main-section by-group insights.
+  report_appendix_cross_label: "Additional Cross-Category Insights"    # H2 heading for appendix cross-category insights.
+  report_appendix_by_group_label: "Additional Group-Specific Findings" # H2 heading for appendix by-group insights.
+  report_include_meta_line: true      # When true, renders an italic support/count line above each insight body in the DOCX.
+  report_include_signal_summary: true # When true, renders a project-count and insight-count summary line below the report title.
+  report_include_looker_link: true    # When true, appends a Looker Explore hyperlink to each insight block in the DOCX.
+  report_looker_link_text: "Project essays for this insight"
+
+quality:
+  stopword_violation_list:
+    # Domain-specific terms that should never survive preprocessing.
+    # NB01 and NB03 setup should read this list and pass it to quality_report()
+    # as the stopwords argument. Until that wiring is in place, quality_report()
+    # falls back to the HARD_STOPWORDS constant in utils.py — keep the two in sync.
+    # Extend this list if new high-frequency noise terms appear in quality reports.
+    - the
+    - and
+    - for
+    - with
+    - are
+    - was
+    - were
+    - been
+    - this
+    - that
+    - from
+    - they
+    - them
+    - their
+    - will
+    - would
+    - should
+    - could
+    - have
+    - has
+    - had
+    - use
+    - using
+    - used
+    - make
+    - makes
+    - making
+    - get
+    - gets
+    - getting
+    - help
+    - helps
+    - project
+    - students
+    - student
+    - classroom
+    - learning
+    - school
+    - teacher
+    - teachers
+    - education
+    - grade
+    - grades
+    - materials
+    - supplies
+    - tools
+    - resources
+    - funded
+    - funding
+    - donors
+    - donor
+    - environment
+    - enhance
+    - foster
+    - experience
+    - ensure
+    - some
+    - class
+    - able
+    - thing
+    - one
+    - teacher
+    - important
+    - success
+    - benefit
+    - offer
+    - show
+    - difference
+    - variety
+    - engage
